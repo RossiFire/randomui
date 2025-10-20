@@ -31,6 +31,28 @@ const Hero: React.FC<HeroProps> = () => {
             stagger: 0.05,
             ease: "back.out(1.7)"
         });
+
+
+        const splittedH2 = new SplitText("h2", {type: "chars"});
+
+        gsap.set(splittedH2.chars, {
+            overflow: 'hidden',
+            transformOrigin: 'bottom',
+            perspective: 1000,
+        });
+
+        const tl = gsap.timeline({ repeat: -1 });
+        
+        tl.to(splittedH2.chars, {
+            rotateX: -90,
+            stagger: 0.05,
+            duration: 0.2,
+        }).to(splittedH2.chars, {
+            rotateX: 0,
+            duration: 0.2,
+            ease: "sine.out",
+            stagger: 0.05,
+        },'<20%');
     }, []);
 
     return (

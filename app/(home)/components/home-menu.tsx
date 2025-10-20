@@ -55,16 +55,12 @@ const HomeMenu: React.FC<HomeMenuProps> = ({ children }) => {
 
     tl.to('.trigger-name div:nth-child(2)', {
       opacity: open ? 1 : 0,
-      bottom: open ? 0 : '100%',
-      duration: 0.5,
       ease: "power2.inOut",
     }, "<");
     tl.to('.trigger-name div:nth-child(1)', {
       opacity: open ? 0 : 1,
-      translateY: open ? 100 : 0,
-      duration: 0.5,
       ease: "power2.inOut",
-    }, open ? "<10%" : "<");
+    }, "<");
 
     tl.to(
       ".main-content",
