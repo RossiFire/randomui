@@ -1,0 +1,59 @@
+---
+title: Stacked Cards
+description: Stacked cards component, using just css 
+---
+
+<PageBadge badges={['tailwind']} />
+
+## Demo
+<StackedCardsDemo />
+
+## Installation
+
+Copy and paste the following code into your project.
+
+```tsx data-lenis-prevent
+return (
+    <div className="flex flex-col items-center">
+        <div className="card w-96 h-[580px] rounded-3xl bg-red-300 sticky top-[100px] mb-12"></div>
+        <div className="card w-96 h-[580px] rounded-3xl bg-green-400 sticky top-[125px] mb-6"></div>
+        <div className="card w-96 h-[580px] rounded-3xl bg-violet-600 sticky top-[200px] mb-0"></div>
+    </div>
+)
+```
+
+## Usage
+```tsx data-lenis-prevent
+return (
+    <div className="your-parent-container">
+        {/* Content */}
+        <div className="flex flex-col items-center">
+            <div className="card w-96 h-[580px] rounded-3xl bg-red-300 sticky top-[50px] mb-12"></div>
+            <div className="card w-96 h-[580px] rounded-3xl bg-green-400 sticky top-[75px] mb-6"></div>
+            <div className="card w-96 h-[580px] rounded-3xl bg-violet-600 sticky top-[150px] mb-0"></div>
+        </div>
+        {/* Content */}
+    </div>
+)
+```
+
+### Custom Sticky point
+
+To customize where the cards stack, you can change the `top` value of the cards, _always keeping the proportions_, like this:
+
+```tsx data-lenis-prevent
+return (
+    <div className="flex flex-col items-center">
+        {/* 
+            If you check the top values respect to the ones above, 
+            you'll see they're keeping the proportions of 25-50-75 
+        */}
+        <div className="card w-96 h-[580px] rounded-3xl bg-red-300 sticky top-[100px] mb-12"></div>
+        <div className="card w-96 h-[580px] rounded-3xl bg-green-400 sticky top-[125px] mb-6"></div>
+        <div className="card w-96 h-[580px] rounded-3xl bg-violet-600 sticky top-[200px] mb-0"></div>
+    </div>
+)
+```
+
+The key point is to keep proportions between top values and cards heights, so they will stack properly. 
+Just play a bit with the values and you'll get the hang of it.

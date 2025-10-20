@@ -1,0 +1,9 @@
+{
+    "title": "Utilities",
+    "description": "Utilities to use in your Nextjs project",
+    "pages": [
+        "use-supabase-auth",
+        "arrayBuilder",
+        "gsap-lenis-provider"
+    ]
+  }

@@ -1,0 +1,331 @@
+---
+title: Ripple Button
+description: Button with smooth animated ripple effect, customizable and extendable with design system
+---
+
+<PageBadge badges={['gsap', 'tailwind']} />
+
+## Demo
+<Tabs items={['Custom', 'Design System']}>
+  <Tab value="Custom" className="p-0">
+    <RippleButtonDemo />
+  </Tab>
+  <Tab value="Design System" className="p-0">
+    <RippleButtonDesignSystemDemo />
+  </Tab>
+</Tabs>
+
+## Installation
+
+Install the following dependencies:
+
+<Tabs items={['npm', 'pnpm', 'yarn', 'bun']}>
+  <Tab value="npm">
+    ```shell
+    npm install gsap @gsap/react
+    ```
+  </Tab>
+  <Tab value="pnpm">
+    ```shell
+    pnpm add gsap @gsap/react
+    ```
+  </Tab>
+  <Tab value="yarn">
+    ```shell
+    yarn add gsap @gsap/react
+    ```
+  </Tab>
+  <Tab value="bun">
+    ```shell
+    bun add gsap @gsap/react
+    ```
+  </Tab>
+</Tabs>
+
+Copy and paste the following code into your project.
+```tsx title="ripple-button.tsx"
+"use client";
+import { useGSAP } from "@gsap/react";
+import { FunctionComponent, useRef, useState } from "react";
+import gsap from "gsap";
+import { cn } from "@/lib/utils";
+
+interface ButtonProps extends React.ComponentProps<"button"> {
+    rippleClassName?: string;
+}
+
+const RippleButton: FunctionComponent<ButtonProps> = ({
+  className,
+  children,
+  rippleClassName,
+  ...props
+}) => {
+  const rippleRef = useRef<HTMLDivElement>(null);
+  const [isHovered, setIsHovered] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+
+  useGSAP(() => {
+    if (!rippleRef.current) return;
+
+    const tl = gsap.timeline();
+
+    // Multiply mouse position to improve ripple out effect
+    const calculatedMousePosition = {
+      x: mousePosition.x * (isHovered ? 1 : 1.2),
+      y: mousePosition.y * (isHovered ? 1 : 1.2),
+    };
+
+    // Reset mouse entry point within the button
+    tl.to(rippleRef.current, {
+      x: mousePosition.x,
+      y: mousePosition.y,
+      duration: 0,
+    })
+    .to(rippleRef.current, {
+      scale: isHovered ? 2 : 0,
+      x: calculatedMousePosition.x,
+      y: calculatedMousePosition.y,
+      duration: 0.4,
+      ease: isHovered ? "power1.out" : "expo.out",
+    });
+    
+  }, [isHovered, mousePosition]);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const offset = (rippleRef.current?.offsetWidth || 2) / 2;
+    const x = e.clientX - rect.left - offset;
+    const y = e.clientY - rect.top - offset;
+    setMousePosition({ x, y });
+  };
+
+
+  return (
+    <button
+      {...props}
+      className={cn(
+        "px-8 py-3 group font-medium border-2 border-white cursor-pointer rounded-full relative overflow-hidden",
+        className
+      )}
+      onMouseEnter={(e) => {
+        setIsHovered(true);
+        props.onMouseEnter?.(e);
+      }}
+      onMouseLeave={(e) => {
+        setIsHovered(false);
+        props.onMouseLeave?.(e);
+      }}
+      onMouseMove={(e) => {
+        handleMouseMove(e);
+        props.onMouseMove?.(e);
+      }}
+    >
+      <div
+        ref={rippleRef}
+        className={cn("absolute pointer-events-none bg-white rounded-full scale-0 top-0 left-0 size-28", rippleClassName)}
+      />
+      <span className="relative z-10 text-white group-hover:text-black transition-colors duration-300">
+        {children}
+      </span>
+    </button>
+  );
+};
+
+export default RippleButton;
+```
+
+## Usage
+```typescript
+import RippleButton from "@/components/ripple-button";
+```
+
+### Basic Usage
+```tsx
+<RippleButton>I'm a ripple button</RippleButton>
+```
+
+### Custom Ripple Size
+```tsx
+<RippleButton rippleClassName="size-10 sm:size-20 md:size-32 lg:size-46">
+    Responsive button
+</RippleButton>
+```
+
+### Native Properties
+
+The component accepts all the props of the native `button` element, so you can customize it as if it was a native button.
+
+```tsx
+<RippleButton 
+    type="submit"
+    disabled
+    onClick={onClickAction}
+    aria-label="I'm a ripple button"
+    ...
+    ...
+>
+    I'm a native button but cool as fuck
+</RippleButton>
+```
+
+### With Design System
+
+You can easily integrate the ripple effect with your design system button component (e.g., [Shadcn UI](https://ui.shadcn.com/)).
+
+#### Step 1: Import your Button component
+
+```tsx title="ripple-button.tsx"
+import { Button } from "@/components/ui/button"; // Your design system button
+```
+
+#### Step 2: Replace the native `button` element
+
+Replace the native `<button>` element with your design system's `<Button>` component:
+
+```tsx title="ripple-button.tsx" {1,6,8}
+// Change from:
+return (
+  <button
+    {...props}
+    className={cn(
+      "px-8 py-3 group font-medium border-2 border-white cursor-pointer rounded-full relative overflow-hidden",
+      className
+    )}
+    onMouseEnter={...}
+    onMouseLeave={...}
+    onMouseMove={...}
+  >
+    {/* ... ripple content ... */}
+  </button>
+);
+
+// To:
+return (
+  <Button
+    {...props}
+    className={cn(
+      "relative overflow-hidden group", // Keep only necessary classes
+      className
+    )}
+    onMouseEnter={...}
+    onMouseLeave={...}
+    onMouseMove={...}
+  >
+    {/* ... content ... */}
+  </Button>
+);
+```
+
+#### Step 3: Adjust styling classes
+
+- Remove styling classes that your design system already provides (padding, font, borders, etc.)
+- Keep only `relative`, `overflow-hidden`, and `group` classes which are essential for the ripple effect
+- Adjust the ripple and text colors to match your button's theme
+
+#### Base Example
+
+```tsx title="ripple-button-design-system.tsx"
+"use client";
+import { useGSAP } from "@gsap/react";
+import { FunctionComponent, useRef, useState } from "react";
+import gsap from "gsap";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button"; // Your design system
+
+interface ButtonProps extends React.ComponentProps<"button"> {
+  rippleClassName?: string;
+}
+
+const RippleButton: FunctionComponent<ButtonProps> = ({
+  className,
+  children,
+  rippleClassName,
+  ...props
+}) => {
+  const rippleRef = useRef<HTMLDivElement>(null);
+  const [isHovered, setIsHovered] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+  useGSAP(() => {
+    if (!rippleRef.current) return;
+
+    const tl = gsap.timeline();
+
+    // Multiply mouse position to improve ripple out effect
+    const calculatedMousePosition = {
+      x: mousePosition.x * (isHovered ? 1 : 1.2),
+      y: mousePosition.y * (isHovered ? 1 : 1.2),
+    };
+
+    // Reset mouse entry point within the button
+    tl.to(rippleRef.current, {
+      x: mousePosition.x,
+      y: mousePosition.y,
+      duration: 0,
+    })
+    .to(rippleRef.current, {
+      scale: isHovered ? 2 : 0,
+      x: calculatedMousePosition.x,
+      y: calculatedMousePosition.y,
+      duration: 0.4,
+      ease: isHovered ? "power1.out" : "expo.out",
+    });
+    
+  }, [isHovered, mousePosition]);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const offset = (rippleRef.current?.offsetWidth || 2) / 2;
+    const x = e.clientX - rect.left - offset;
+    const y = e.clientY - rect.top - offset;
+    setMousePosition({ x, y });
+  };
+
+  return (
+    <Button
+      {...props}
+      className={cn("relative overflow-hidden group", className)}
+      onMouseEnter={(e) => {
+        setIsHovered(true);
+        props.onMouseEnter?.(e);
+      }}
+      onMouseLeave={(e) => {
+        setIsHovered(false);
+        props.onMouseLeave?.(e);
+      }}
+      onMouseMove={(e) => {
+        handleMouseMove(e);
+        props.onMouseMove?.(e);
+      }}
+    >
+      <div
+        ref={rippleRef}
+        className={cn(
+          "absolute pointer-events-none bg-primary-foreground rounded-full scale-0 top-0 left-0 size-28",
+          rippleClassName
+        )}
+      />
+      <div className="z-20 relative group-hover:text-primary transition-colors duration-300">
+        {children}
+      </div>
+    </Button>
+  );
+};
+
+export default RippleButton;
+```
+
+#### Usage
+
+```tsx
+<RippleButton>I'm a ripple button with design system</RippleButton>
+```
+
+## Props
+
+It accepts all the props of the native `button` element. Additionally, it accepts the following props:
+
+| Prop | Type | Default Value | Description |
+|------|------|---------|-------------|
+| rippleClassName? | `string` | - | The class name for the ripple effect |

@@ -1,0 +1,50 @@
+---
+title: use-hydration
+description: Utility hook to check if we're in client-side context
+---
+
+<Alert variant="info">
+If you're using __React__, this hook is not required
+</Alert>
+Sometimes you want to do client stuff with DOM or calling client functions, but the component didn't mount yet so you would get an error. With this hook you can easily solve the issue. 
+## Why is it useful?
+
+## Installation
+
+Copy and paste the following code into your project.
+```typescript title="use-hydration.ts"
+"use client";
+import { useEffect, useState } from "react";
+
+/**
+ * Hook to check if we're in client-side context
+ * @returns {boolean} isMounted
+ */
+export const useHydration = (): boolean => {
+  const [isMounted, setIsMounded] = useState(false);
+
+  useEffect(() => {
+    setIsMounded(true);
+  }, []);
+
+  return isMounted;
+};
+```
+
+### Usage
+
+```typescript
+import { useHydration } from "@/hooks/use-hydration";
+```
+```tsx
+const isMounted = useHydration();
+
+// remember: all hooks must be before return statement
+
+if (!isMounted) return null;
+
+return (
+  // Component with client code
+)
+
+```

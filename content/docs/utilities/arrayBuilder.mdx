@@ -1,0 +1,203 @@
+---
+title: Array Builder
+description: Function to build arrays efficiently, dynamically and type safe
+hot_item: true
+---
+
+<PageBadge badges={['typescript']} />
+
+## Philosophy
+
+This simple function can be a game changer when you need to build arrays dynamically and type safe, 
+especially when you have complex conditions. I found it so useful mainly for RBAC (Role Based Access Control) use cases,
+where you need to assign resources based on the user's role. It has several benefits:
+
+- More efficient than the spread operator, because it doesn't need to create a new array for each argument.
+- Type safe: It enforces type safety and readability (I know you all sometimes create arrays with any types of with different types).
+- More flexible: it can handle functions, arrays and single values.
+- More readable: it's a bit more verbose than the spread operator.
+
+## Installation
+
+Copy and paste the following code into your project.
+
+```ts title="arrayBuilder.ts"
+export const arrayBuilder = <T>(
+    ...args: (T[] | T | null | (T | false) | (()=>(T | false)))[]
+): T[] => {
+    const result: T[] = [];
+    
+    for (const arg of args) {
+        // Skip null or false values
+        if (arg === null || arg === false) continue;
+        
+        // Handle function: execute and check result
+        if (typeof arg === 'function') {
+            const value = (arg as () => T | false)();
+            if (value !== false) result.push(value);
+            continue;
+        }
+        
+        // Handle array: spread values
+        if (Array.isArray(arg)) {
+            result.push(...arg);
+            continue;
+        }
+        
+        // Handle single value
+        result.push(arg as T);
+    }
+    
+    return result;
+}
+```
+
+
+
+## Use cases examples
+
+### Tabs builder
+
+```ts
+type Tab = {
+    label: string;
+    component: React.ReactNode;
+}
+
+const defaultTabsForAllUsers: Tab[] = [
+  { label: "Profile", component: <Profile /> },
+  { label: "Settings", component: <Settings /> },
+];
+
+
+const tabs: Tab[] = arrayBuilder<Tab>(
+  defaultTabsForAllUsers,
+  currentUser.isRootAccount && {
+    label: "Manage Admins",
+    component: <ManageAdmins />,
+  },
+  canAdminSeeThisTab() && {
+    label: "For Admins",
+    component: <ForAdmins />,
+  },
+  {
+    label: "Logout",
+    component: <Logout />,
+  }
+);
+```
+
+### Permissions builder
+
+```ts
+const basePermissions = ["wiew", "edit"];
+
+function getUserPermissions(coolUser: SomeTypeOfUser): string[] {
+  return arrayBuilder<string>(
+    basePermissions,
+    coolUser.isAdmin && "create",
+    canThisUserDeleteBasedOnSomeConditions(coolUser) && "delete"
+  );
+}
+
+/* .. some code .. */
+
+const userPermissions = getUserPermissions(coolUser);
+```
+
+### Nested builders
+
+You can also use nested builders, allowing you to write imperative code efficiently.
+
+```ts
+function getReadPermissions(coolUser: SomeTypeOfUser): string[] {
+  return arrayBuilder<string>(
+    "read_self",
+    coolUser.isAdmin && "read_public_users",
+    coolUser.isRootAccount && "read_all"
+  );
+}
+
+function getWritePermissions(coolUser: SomeTypeOfUser): string[] {
+  return arrayBuilder<string>(
+    "write_self",
+    coolUser.isAdmin && "write_public_users",
+    coolUser.isRootAccount && "write_all"
+  );
+}
+
+function getDeletePermissions(coolUser: SomeTypeOfUser): string[] {
+  return arrayBuilder<string>(
+    "delete_self",
+    coolUser.isAdmin && "delete_public_users",
+    coolUser.isRootAccount && "delete_all"
+  );
+}
+
+/* Core function */
+function getUserPermissions(coolUser: SomeTypeOfUser): string[] {
+  return arrayBuilder<string>(
+    getReadPermissions(coolUser),
+    getWritePermissions(coolUser),
+    getDeletePermissions(coolUser),
+  );
+}
+
+const userPermissions = getUserPermissions(coolUser);
+```
+
+## NextJs and React Implementation
+
+### NextJs SSR
+
+```tsx title="page.tsx"
+import { arrayBuilder } from "./arrayBuilder";
+
+export default function ProfilePage({ coolUser }: { coolUser: SomeTypeOfUser }) {
+
+    const tabsToRender = arrayBuilder<Tab>(
+        defaultTabsForAllUsers,
+        coolUser.isAdmin && {
+            label: "Manage Admins",
+            component: <ManageAdmins />,
+        },
+    );
+
+    return (
+        /* Tabs content*/
+    );
+}
+```
+
+### React example with `arrayBuilder` and `useState`
+
+```tsx title="UserProfileActions.tsx"
+import { useState, useEffect } from "react";
+import { arrayBuilder } from "./arrayBuilder";
+
+export default function UserProfileActions({ coolUser }: { coolUser: SomeTypeOfUser }) {
+  const [userActions, setUserActions] = useState<string[]>([]);
+
+  useEffect(() => {
+    setUserActions(
+      arrayBuilder<UserAction>(
+        "View Profile",
+        coolUser.isActive && "Edit Profile",
+        coolUser.isAdmin && "Manage Admins",
+        coolUser.isRootAccount && "Superuser Panel"
+      )
+    );
+  }, [coolUser]);
+
+  return (
+    <div>
+      <h3>User Actions:</h3>
+      <ul>
+        {userActions.map(action => (
+          <li key={action}>{action}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+```

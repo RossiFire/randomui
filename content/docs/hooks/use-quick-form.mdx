@@ -1,0 +1,1662 @@
+---
+title: "use-quick-form"
+description: "A modular form management system with flexible validation, array handling, undo/redo functionality, and analytics tracking. Built for performance, simplicity, and extensibility."
+hot_item: true
+---
+
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+import { File, Folder, Files } from 'fumadocs-ui/components/files';
+
+# Demo
+
+<Tabs items={['Core Module', 'History', 'Analytics']}>
+  <Tab className='p-0' value="Core Module">
+    <QuickFormSimpleDemo />
+  </Tab>
+  <Tab className='p-0' value="History">
+    <QuickFormHistoryDemo />
+  </Tab>
+  <Tab className='p-0' value="Analytics">
+    <QuickFormAnalyticsDemo />
+  </Tab>
+</Tabs>
+
+## Features
+
+- **Modular Architecture**: Core hook with optional extensions for history, analytics, and more
+- **Flexible Validation**: Support for Zod schemas or custom validation functions
+- **Array Field Support**: Advanced array handling with `toggleInArray` method and deep comparison
+- **Performance Optimized**: Memoization, caching, and minimal re-renders
+- **TypeScript First**: Full type safety with intelligent inference
+- **Copy-Paste Ready**: All modules can be copied directly into your project
+- **Extensible**: Create custom modules that integrate seamlessly
+
+## Installation
+
+This hook allows schema validation with [Zod](https://zod.dev/), so we need to install it.
+<Tabs items={['npm', 'pnpm', 'yarn', 'bun']}>
+  <Tab value="npm">
+    ```shell
+    npm install zod
+    ```
+  </Tab>
+  <Tab value="pnpm">
+    ```shell
+    pnpm add zod
+    ```
+  </Tab>
+  <Tab value="yarn">
+    ```shell
+    yarn add zod
+    ```
+  </Tab>
+  <Tab value="bun">
+    ```shell
+    bun add zod
+    ```
+  </Tab>
+</Tabs>
+
+Since this is a modular system, I recommend the following file structure:
+
+<Files>
+  <Folder name="hooks" defaultOpen>
+    <Folder name="use-quick-form" defaultOpen>
+      <File name="index.ts // Export all modules" />
+      <File name="useQuickForm.ts // Core form hook" />
+      <File name="useQuickFormHistory.ts // Undo/redo functionality" />
+      <File name="useQuickFormAnalytics.ts // Analytics tracking" />
+    </Folder>
+  </Folder>
+</Files>
+
+
+Copy and paste the main hook directly into your project.
+
+```typescript title="hooks/use-quick-form/useQuickForm.ts"
+"use client";
+
+import {
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
+  useRef,
+  type FormEvent,
+} from "react";
+import { type ZodSchema, ZodError } from "zod/v3";
+
+/**
+ * Performance optimization utilities
+ */
+const shallowEqual = <T extends Record<string, any>>(
+  obj1: T,
+  obj2: T
+): boolean => {
+  const keys1 = Object.keys(obj1);
+  const keys2 = Object.keys(obj2);
+
+  if (keys1.length !== keys2.length) {
+    return false;
+  }
+
+  for (const key of keys1) {
+    if (obj1[key] !== obj2[key]) {
+      return false;
+    }
+  }
+
+  return true;
+};
+
+const deepEqual = <T extends Record<string, any>>(
+  obj1: T,
+  obj2: T
+): boolean => {
+  if (obj1 === obj2) return true;
+
+  const keys1 = Object.keys(obj1);
+  const keys2 = Object.keys(obj2);
+
+  if (keys1.length !== keys2.length) {
+    return false;
+  }
+
+  for (const key of keys1) {
+    const val1 = obj1[key];
+    const val2 = obj2[key];
+
+    // Handle arrays properly
+    if (Array.isArray(val1) && Array.isArray(val2)) {
+      if (val1.length !== val2.length) return false;
+      for (let i = 0; i < val1.length; i++) {
+        if (
+          typeof val1[i] === "object" &&
+          val1[i] !== null &&
+          typeof val2[i] === "object" &&
+          val2[i] !== null
+        ) {
+          if (!deepEqual(val1[i], val2[i])) return false;
+        } else if (val1[i] !== val2[i]) {
+          return false;
+        }
+      }
+    } else if (
+      typeof val1 === "object" &&
+      val1 !== null &&
+      typeof val2 === "object" &&
+      val2 !== null
+    ) {
+      if (!deepEqual(val1, val2)) {
+        return false;
+      }
+    } else if (val1 !== val2) {
+      return false;
+    }
+  }
+
+  return true;
+};
+
+/**
+ * Custom validation function type that takes form data and returns validation result
+ * @template T - The type of the form data
+ * @param data - The current form data
+ * @returns true if valid, false if invalid, or object with field-specific errors
+ */
+export type CustomValidator<T> = (data: T) => boolean | Partial<FormErrors<T>>;
+
+/**
+ * Union type for validation options - either a Zod schema or custom validator function
+ * @template T - The type of the form data
+ */
+export type ValidationOption<T> = ZodSchema<T> | CustomValidator<T>;
+
+/**
+ * Type for form errors that maps form field keys to error messages
+ * @template T - The type of the form data
+ */
+export type FormErrors<T> = {
+  [K in keyof T]?: string;
+};
+
+/**
+ * Form state interface containing the current form data and validation state
+ * @template T - The type of the form data
+ */
+export interface FormState<T> {
+  /** Current form data */
+  data: T;
+  /** Object containing field-specific error messages */
+  errors: FormErrors<T>;
+  /** Whether the form is currently valid */
+  isValid: boolean;
+  /** Whether the form has been modified from its initial state */
+  isDirty: boolean;
+}
+
+/**
+ * Form actions interface containing methods to manipulate form data and validation
+ * @template T - The type of the form data
+ */
+export interface FormActions<T> {
+  /** Set a single field value */
+  set: <K extends keyof T>(field: K, value: T[K]) => void;
+  /** Set multiple fields at once */
+  setData: (data: Partial<T>) => void;
+  /** Clear a specific field (reset to initial value) */
+  clearField: <K extends keyof T>(field: K) => void;
+  /** Clear all error messages */
+  clearErrors: () => void;
+  /** Clear error message for a specific field */
+  clearFieldError: <K extends keyof T>(field: K) => void;
+  /** Reset form to original state */
+  reset: () => void;
+  /** Handle the form submission, avoiding the default form submission redirection */
+  submit: (fn: () => void) => (event: FormEvent<HTMLFormElement>) => void;
+  /** Toggle a value in an array field */
+  toggleInArray: <K extends keyof T>(
+    field: K,
+    value: T[K] extends (infer U)[] ? U : never
+  ) => void;
+}
+
+/**
+ * Internal form state interface for module interconnection
+ * @template T - The type of the form data
+ */
+export interface FormStateRef<T> {
+  data: T;
+  errors: FormErrors<T>;
+  originalData: T;
+  isDirty: boolean;
+  isValid: boolean;
+}
+
+/**
+ * Complete form hook return type combining state, actions, and utilities
+ * @template T - The type of the form data
+ */
+export interface UseQuickFormReturn<T> extends FormState<T>, FormActions<T> {
+  /** Get the current value of a specific field */
+  get: <K extends keyof T>(field: K) => T[K];
+  /** Check if the form has any errors */
+  hasError: () => boolean;
+  /** Check if a specific field has been changed from its initial value */
+  touched: <K extends keyof T>(field: K) => boolean;
+  /** Reference to form state for module interconnection */
+  ref: React.MutableRefObject<FormStateRef<T> | null>;
+}
+
+/**
+ * A powerful React hook for form management with flexible validation
+ *
+ * @template T - The type of the form data
+ * @param initialData - The initial form data object
+ * @param validationOption - Either a Zod schema or custom validation function
+ * @returns Form state, actions, and utilities for managing the form
+ *
+ * @example
+ * ```tsx
+ * // With Zod schema
+ * const form = useQuickForm(initialData, zodSchema);
+ *
+ * // With custom validator
+ * const form = useQuickForm(initialData, (data) => data.email.includes('@'));
+ * ```
+ */
+export const useQuickForm = <T extends Record<string, any>>(
+  initialData: T,
+  validationOption: ValidationOption<T>
+): UseQuickFormReturn<T> => {
+  const [data, setFormData] = useState<T>(initialData);
+  const [errors, setErrors] = useState<FormErrors<T>>({});
+  const [originalData] = useState<T>(initialData);
+
+  // Performance optimization: Use refs to avoid unnecessary re-renders
+  const validationCacheRef = useRef<{
+    data: T;
+    result: boolean;
+    errors: FormErrors<T>;
+  } | null>(null);
+  const fieldCacheRef = useRef<Map<keyof T, T[keyof T]>>(new Map());
+
+  // Ref for module interconnection
+  const formStateRef = useRef<FormStateRef<T> | null>(null);
+
+  /**
+   * Check if form is dirty (has changes from original data)
+   * @returns true if the form has been modified from its initial state
+   */
+  const isDirty = useMemo(() => {
+    return !deepEqual(data, originalData);
+  }, [data, originalData]);
+
+  /**
+   * Helper function to check if validation option is a Zod schema
+   * @param option - The validation option to check
+   * @returns true if the option is a Zod schema
+   */
+  const isZodSchema = useCallback(
+    (option: ValidationOption<T>): option is ZodSchema<T> => {
+      return typeof option === "object" && "parse" in option;
+    },
+    []
+  );
+
+  /**
+   * Optimized validation function with caching
+   */
+  const validateForm = useCallback(() => {
+    // Check cache first
+    if (
+      validationCacheRef.current &&
+      deepEqual(validationCacheRef.current.data, data)
+    ) {
+      return validationCacheRef.current;
+    }
+
+    let isValid = false;
+    let newErrors: FormErrors<T> = {};
+
+    if (isZodSchema(validationOption)) {
+      try {
+        validationOption.parse(data);
+        isValid = true;
+        newErrors = {};
+      } catch (error) {
+        isValid = false;
+        if (error instanceof ZodError) {
+          error.errors.forEach((err) => {
+            const path = err.path.join(".");
+            (newErrors as any)[path] = err.message;
+          });
+        }
+      }
+    } else {
+      const result = validationOption(data);
+
+      if (typeof result === "boolean") {
+        isValid = result;
+        if (!result) {
+          newErrors = { form: "Form validation failed" } as FormErrors<T>;
+        }
+      } else {
+        newErrors = result;
+        isValid = Object.keys(result).length === 0;
+      }
+    }
+
+    // Cache the result
+    validationCacheRef.current = {
+      data: { ...data },
+      result: isValid,
+      errors: newErrors,
+    };
+
+    return { result: isValid, errors: newErrors };
+  }, [data, validationOption, isZodSchema]);
+
+  /**
+   * Check if form is valid based on current data and validation option
+   * @returns true if the form is valid, false otherwise
+   */
+  const isValid = useMemo(() => {
+    return validateForm().result;
+  }, [validateForm]);
+
+  /**
+   * Automatic validation effect - triggers validation whenever form data changes
+   */
+  useEffect(() => {
+    const { errors: newErrors } = validateForm();
+
+    // Only update errors if they've actually changed using shallow comparison
+    setErrors((prev) => {
+      if (shallowEqual(prev, newErrors)) {
+        return prev; // No changes, return previous state
+      }
+      return newErrors;
+    });
+  }, [validateForm]);
+
+  /**
+   * Update form state ref for module interconnection
+   */
+  useEffect(() => {
+    formStateRef.current = {
+      data,
+      errors,
+      originalData,
+      isDirty,
+      isValid,
+    };
+  }, [data, errors, originalData, isDirty, isValid]);
+
+  /**
+   * Set a single field value with optimized state update
+   * @param field - The field to set
+   * @param value - The new value for the field
+   */
+  const set = useCallback(<K extends keyof T>(field: K, value: T[K]) => {
+    setFormData((prev) => {
+      // Early return if value hasn't changed
+      if (prev[field] === value) {
+        return prev;
+      }
+
+      // Clear validation cache when data changes
+      validationCacheRef.current = null;
+
+      return {
+        ...prev,
+        [field]: value,
+      };
+    });
+  }, []);
+
+  /**
+   * Set multiple fields at once with optimized state update
+   * @param newData - Partial data object containing fields to update
+   */
+  const setMultipleData = useCallback((newData: Partial<T>) => {
+    setFormData((prev) => {
+      let hasChanges = false;
+      const updatedData = { ...prev };
+
+      // Check if any values have actually changed
+      for (const [key, value] of Object.entries(newData)) {
+        if (prev[key as keyof T] !== value) {
+          updatedData[key as keyof T] = value as T[keyof T];
+          hasChanges = true;
+        }
+      }
+
+      // Early return if no changes
+      if (!hasChanges) {
+        return prev;
+      }
+
+      // Clear validation cache when data changes
+      validationCacheRef.current = null;
+
+      return updatedData;
+    });
+  }, []);
+
+  /**
+   * Clear a specific field (reset to initial value and clear its error)
+   * @param field - The field to clear
+   */
+  const clearField = useCallback(
+    <K extends keyof T>(field: K) => {
+      setFormData((prev) => {
+        // Early return if value is already the initial value
+        if (prev[field] === initialData[field]) {
+          return prev;
+        }
+
+        // Clear validation cache when data changes
+        validationCacheRef.current = null;
+
+        return {
+          ...prev,
+          [field]: initialData[field],
+        };
+      });
+
+      setErrors((prev) => {
+        // Early return if field has no error
+        if (!((field as string) in prev)) {
+          return prev;
+        }
+
+        const newErrors = { ...prev };
+        delete newErrors[field as string];
+        return newErrors;
+      });
+    },
+    [initialData]
+  );
+
+  /**
+   * Clear all error messages
+   */
+  const clearErrors = useCallback(() => {
+    setErrors((prev) => {
+      // Early return if no errors exist
+      if (Object.keys(prev).length === 0) {
+        return prev;
+      }
+      return {};
+    });
+  }, []);
+
+  /**
+   * Clear error message for a specific field
+   * @param field - The field to clear the error for
+   */
+  const clearFieldError = useCallback(<K extends keyof T>(field: K) => {
+    setErrors((prev) => {
+      // Early return if field has no error
+      if (!((field as string) in prev)) {
+        return prev;
+      }
+
+      const newErrors = { ...prev };
+      delete newErrors[field as string];
+      return newErrors;
+    });
+  }, []);
+
+  /**
+   * Reset form to original state (same as clear but more explicit)
+   */
+  const reset = useCallback(() => {
+    setFormData((prev) => {
+      // Early return if already at original state
+      if (deepEqual(prev, originalData)) {
+        return prev;
+      }
+
+      // Clear validation cache when data changes
+      validationCacheRef.current = null;
+
+      return originalData;
+    });
+
+    setErrors((prev) => {
+      // Early return if no errors exist
+      if (Object.keys(prev).length === 0) {
+        return prev;
+      }
+      return {};
+    });
+  }, [originalData]);
+
+  /**
+   * Get the current value of a specific field with memoization
+   * @param field - The field to get the value for
+   * @returns The current value of the field
+   */
+  const get = useCallback(
+    <K extends keyof T>(field: K): T[K] => {
+      // Use field cache for better performance
+      const cachedValue = fieldCacheRef.current.get(field);
+      const currentValue = data[field];
+
+      if (cachedValue === currentValue) {
+        return cachedValue as T[K];
+      }
+
+      fieldCacheRef.current.set(field, currentValue);
+      return currentValue;
+    },
+    [data]
+  );
+
+  /**
+   * Check if the form has any errors with memoization
+   * @returns True if the form has any errors, false otherwise
+   */
+  const hasError = useCallback((): boolean => {
+    return Object.values(errors).some((error) => !!error);
+  }, [errors]);
+
+  /**
+   * Check if a specific field has been changed from its initial value
+   * @param field - The field to check
+   * @returns True if the field has been changed, false otherwise
+   */
+  const touched = useCallback(
+    <K extends keyof T>(field: K): boolean => {
+      return data[field] !== originalData[field];
+    },
+    [data, originalData]
+  );
+
+  /**
+   * Toggle a value in an array field
+   * @param field - The array field to toggle the value in
+   * @param value - The value to toggle
+   */
+  const toggleInArray = useCallback(
+    <K extends keyof T>(
+      field: K,
+      value: T[K] extends (infer U)[] ? U : never
+    ) => {
+      setFormData((prev) => {
+        const currentArray = prev[field] as any[];
+
+        if (!Array.isArray(currentArray)) {
+          console.warn(
+            `Field '${String(field)}' is not an array. Cannot toggle value.`
+          );
+          return prev;
+        }
+
+        const index = currentArray.findIndex((item) => {
+          if (
+            typeof item === "object" &&
+            item !== null &&
+            typeof value === "object" &&
+            value !== null
+          ) {
+            return deepEqual(item, value as any);
+          }
+          return item === value;
+        });
+
+        let newArray: any[];
+        if (index === -1) {
+          // Value not found, add it
+          newArray = [...currentArray, value];
+        } else {
+          // Value found, remove it
+          newArray = currentArray.filter((_, i) => i !== index);
+        }
+
+        // Early return if array hasn't changed
+        if (
+          currentArray.length === newArray.length &&
+          currentArray.every((item, i) => {
+            if (
+              typeof item === "object" &&
+              item !== null &&
+              typeof newArray[i] === "object" &&
+              newArray[i] !== null
+            ) {
+              return deepEqual(item, newArray[i]);
+            }
+            return item === newArray[i];
+          })
+        ) {
+          return prev;
+        }
+
+        // Clear validation cache when data changes
+        validationCacheRef.current = null;
+
+        return {
+          ...prev,
+          [field]: newArray as T[K],
+        };
+      });
+    },
+    []
+  );
+
+  /**
+   * Submit the form - returns a function that can be used as onSubmit handler
+   * @param fn - The function to execute on form submission
+   * @returns A function that handles the form event and calls the provided function
+   */
+  const submit = useCallback((fn: () => void) => {
+    return (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      fn();
+    };
+  }, []);
+
+  return {
+    // State
+    data,
+    errors,
+    isValid,
+    isDirty,
+
+    // Actions
+    set,
+    setData: setMultipleData,
+    clearField,
+    clearErrors,
+    clearFieldError,
+    reset,
+    toggleInArray,
+
+    // Utilities
+    get,
+    hasError,
+    touched,
+    submit,
+
+    // Module interconnection
+    ref: formStateRef,
+  };
+};
+```
+
+## Core Module
+
+The core `useQuickForm` hook provides the foundation for all form management functionality.
+
+### Basic Usage
+
+```tsx
+import { useQuickForm } from "@/hooks/use-quick-form";
+import { z } from "zod";
+
+const schema = z.object({
+  email: z.string().email("Invalid email"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  interests: z.array(z.string()).min(1, "Select at least one interest"),
+});
+
+const initialData = { 
+  email: '', 
+  password: '', 
+  interests: [] 
+};
+
+function MyForm() {
+  const { data, set, errors, isValid, submit, toggleInArray } = useQuickForm(
+    initialData, 
+    schema
+  );
+
+  const handleSubmit = () => {
+    console.log('Form data:', data);
+  };
+
+  return (
+    <form onSubmit={submit(handleSubmit)}>
+      <input
+        value={data.email}
+        onChange={(e) => set('email', e.target.value)}
+        placeholder="Email"
+      />
+      {errors.email && <span>{errors.email}</span>}
+
+      <input
+        type="password"
+        value={data.password}
+        onChange={(e) => set('password', e.target.value)}
+        placeholder="Password"
+      />
+      {errors.password && <span>{errors.password}</span>}
+
+      <div>
+        <label>Interests:</label>
+        {['React', 'Vue', 'Angular'].map(interest => (
+          <button
+            key={interest}
+            type="button"
+            onClick={() => toggleInArray('interests', interest)}
+            className={data.interests.includes(interest) ? 'selected' : ''}
+          >
+            {interest}
+          </button>
+        ))}
+      </div>
+
+      <button type="submit" disabled={!isValid}>
+        Submit
+      </button>
+    </form>
+  );
+}
+```
+
+## API Reference
+
+### Hook Parameters
+
+```typescript
+interface UseQuickFormParams<T> {
+  /** Initial form data */
+  initialData: T;
+  /** Validation option - Zod schema or custom validator */
+  validationOption: ValidationOption<T>;
+}
+
+type ValidationOption<T> = ZodSchema<T> | CustomValidator<T>;
+
+type CustomValidator<T> = (data: T) => boolean | Partial<FormErrors<T>>;
+```
+
+### Return Value
+
+```typescript
+interface UseQuickFormReturn<T> {
+  // State
+  /** Current form data */
+  data: T;
+  /** Object containing field-specific error messages */
+  errors: FormErrors<T>;
+  /** Whether the form is currently valid */
+  isValid: boolean;
+  /** Whether the form has been modified from its initial state */
+  isDirty: boolean;
+
+  // Actions
+  /** Set a single field value */
+  set: <K extends keyof T>(field: K, value: T[K]) => void;
+  /** Set multiple fields at once */
+  setData: (data: Partial<T>) => void;
+  /** Clear a specific field (reset to initial value) */
+  clearField: <K extends keyof T>(field: K) => void;
+  /** Clear all error messages */
+  clearErrors: () => void;
+  /** Clear error message for a specific field */
+  clearFieldError: <K extends keyof T>(field: K) => void;
+  /** Reset form to original state */
+  reset: () => void;
+  /** Toggle a value in an array field */
+  toggleInArray: <K extends keyof T>(field: K, value: T[K] extends (infer U)[] ? U : never) => void;
+  /** Handle the form submission, avoiding the default form submission redirection */
+  submit: (fn: () => void) => (event: FormEvent<HTMLFormElement>) => void;
+
+  // Utilities
+  /** Get the current value of a specific field */
+  get: <K extends keyof T>(field: K) => T[K];
+  /** Check if the form has any errors */
+  hasError: () => boolean;
+  /** Check if a specific field has been changed from its initial value */
+  touched: <K extends keyof T>(field: K) => boolean;
+  /** Reference to form state for module interconnection */
+  ref: React.MutableRefObject<FormStateRef<T> | null>;
+}
+```
+
+## Validation Options
+
+### Zod Schema Validation
+
+```tsx
+import { z } from "zod";
+
+const schema = z.object({
+  email: z.string().email("Invalid email address"),
+  age: z.number().min(18, "Must be at least 18 years old"),
+  tags: z.array(z.string()).min(1, "Select at least one tag"),
+});
+
+const form = useQuickForm(initialData, schema);
+```
+
+### Custom Validation
+
+```tsx
+const customValidator = (data) => {
+  const errors = {};
+  
+  if (!data.email.includes('@')) {
+    errors.email = 'Email must contain @';
+  }
+  
+  if (data.password.length < 8) {
+    errors.password = 'Password too short';
+  }
+  
+  return Object.keys(errors).length === 0 ? true : errors;
+};
+
+const form = useQuickForm(initialData, customValidator);
+```
+
+## Array Field Management
+
+The hook provides excellent support for array fields with optimized performance and proper rerendering.
+
+### Basic Array Operations
+
+```tsx
+const { data, set, toggleInArray } = useQuickForm(
+  { tags: [], skills: [] }, 
+  schema
+);
+
+// Add/remove items from arrays
+toggleInArray('tags', 'javascript'); // Adds if not present, removes if present
+toggleInArray('skills', 'react');     // Works with any array field
+
+// Direct array manipulation
+set('tags', [...data.tags, 'typescript']);
+set('skills', data.skills.filter(skill => skill !== 'vue'));
+```
+
+### Array Field Patterns
+
+```tsx
+// Multi-select with badges
+{options.map(option => (
+  <Badge
+    key={option}
+    variant={data.interests.includes(option) ? 'default' : 'outline'}
+    onClick={() => toggleInArray('interests', option)}
+  >
+    {option}
+  </Badge>
+))}
+
+// Checkbox groups
+{skills.map(skill => (
+  <label key={skill}>
+    <input
+      type="checkbox"
+      checked={data.selectedSkills.includes(skill)}
+      onChange={() => toggleInArray('selectedSkills', skill)}
+    />
+    {skill}
+  </label>
+))}
+```
+
+## Modules
+
+The form system includes optional modules that extend functionality:
+
+### useQuickFormHistory
+
+Adds undo/redo functionality with configurable history size.
+
+```typescript title="hooks/use-quick-form/useQuickFormHistory.ts"
+"use client";
+import { useState, useCallback, useRef, useEffect } from "react";
+
+/**
+ * History entry representing a snapshot of form data
+ * @template T - The type of the form data
+ */
+interface HistoryEntry<T> {
+  data: T;
+  timestamp: number;
+}
+
+/**
+ * Configuration options for history management
+ */
+interface HistoryOptions {
+  /** Maximum number of history entries to keep (default: 50) */
+  maxSize?: number;
+  /** Debounce delay in ms to avoid tracking rapid changes (default: 300) */
+  debounceMs?: number;
+}
+
+/**
+ * Return type for the useQuickFormHistory hook
+ * @template T - The type of the form data
+ */
+export interface UseQuickFormHistoryReturn<T> {
+  /** Undo the last change */
+  undo: () => void;
+  /** Redo the last undone change */
+  redo: () => void;
+  /** Whether undo is available */
+  canUndo: boolean;
+  /** Whether redo is available */
+  canRedo: boolean;
+  /** Clear all history */
+  clearHistory: () => void;
+  /** Number of items in undo stack */
+  historySize: number;
+  /** Number of items in redo stack */
+  redoSize: number;
+  /** Jump to a specific history index */
+  jumpTo: (index: number) => void;
+}
+
+/**
+ * A modular hook that provides undo/redo functionality for form state.
+ * Efficiently tracks changes with debouncing and configurable history size.
+ * @param data - Current form data (to trigger tracking on changes)
+ * @param setData - The setData function from useQuickForm to update form data
+ * @param options - Configuration options for history behavior
+ * @returns History management utilities
+ *
+ * @example
+ * ```tsx
+ * const form = useQuickForm(initialData, schema);
+ * const history = useQuickFormHistory(form.data, form.setData, { maxSize: 100 });
+ *
+ * // Undo/redo actions
+ * <button onClick={history.undo} disabled={!history.canUndo}>Undo</button>
+ * <button onClick={history.redo} disabled={!history.canRedo}>Redo</button>
+ * ```
+ */
+export function useQuickFormHistory<T extends Record<string, any>>(
+  data: T,
+  setData: (data: Partial<T>) => void,
+  options: HistoryOptions = {}
+): UseQuickFormHistoryReturn<T> {
+  const { maxSize = 50, debounceMs = 300 } = options;
+
+  const [undoStack, setUndoStack] = useState<HistoryEntry<T>[]>([]);
+  const [redoStack, setRedoStack] = useState<HistoryEntry<T>[]>([]);
+
+  // Refs for performance optimization
+  const isUndoRedoAction = useRef(false);
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+  const lastTrackedData = useRef<T | null>(null);
+  const isInitialized = useRef(false);
+  const hasUserInteracted = useRef(false);
+
+  // Deep comparison with array support
+  const hasDataChanged = useCallback((prev: T, current: T): boolean => {
+    if (prev === current) return false;
+
+    const keys1 = Object.keys(prev);
+    const keys2 = Object.keys(current);
+
+    if (keys1.length !== keys2.length) return true;
+
+    for (const key of keys1) {
+      const val1 = prev[key];
+      const val2 = current[key];
+
+      // Handle arrays properly
+      if (Array.isArray(val1) && Array.isArray(val2)) {
+        if (val1.length !== val2.length) return true;
+        for (let i = 0; i < val1.length; i++) {
+          if (
+            typeof val1[i] === "object" &&
+            val1[i] !== null &&
+            typeof val2[i] === "object" &&
+            val2[i] !== null
+          ) {
+            if (!hasDataChanged(val1[i] as any, val2[i] as any)) continue;
+            return true;
+          } else if (val1[i] !== val2[i]) {
+            return true;
+          }
+        }
+      } else if (
+        typeof val1 === "object" &&
+        val1 !== null &&
+        typeof val2 === "object" &&
+        val2 !== null
+      ) {
+        if (!hasDataChanged(val1 as any, val2 as any)) continue;
+        return true;
+      } else if (val1 !== val2) {
+        return true;
+      }
+    }
+
+    return false;
+  }, []);
+
+  /**
+   * Add current state to history with debouncing
+   */
+  const addToHistory = useCallback(
+    (data: T) => {
+      // Skip if this is an undo/redo action
+      if (isUndoRedoAction.current) return;
+
+      // Skip if user hasn't interacted yet
+      if (!hasUserInteracted.current) return;
+
+      // Skip first rerender
+      if (
+        lastTrackedData.current &&
+        !hasDataChanged(lastTrackedData.current, data)
+      ) {
+        return;
+      }
+
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+
+      debounceTimer.current = setTimeout(() => {
+        const entry: HistoryEntry<T> = {
+          data: { ...lastTrackedData.current! },
+          timestamp: Date.now(),
+        };
+
+        setUndoStack((prev) => {
+          const newStack = [...prev, entry];
+          if (newStack.length > maxSize) {
+            return newStack.slice(newStack.length - maxSize);
+          }
+          return newStack;
+        });
+
+        setRedoStack([]);
+
+        lastTrackedData.current = { ...data };
+      }, debounceMs);
+    },
+    [debounceMs, maxSize, hasDataChanged]
+  );
+
+  useEffect(() => {
+    if (isInitialized.current) return;
+
+    // Store initial state without adding to history
+    lastTrackedData.current = { ...data };
+    isInitialized.current = true;
+  }, []);
+
+  useEffect(() => {
+    if (!isInitialized.current) return;
+
+    if (
+      lastTrackedData.current &&
+      hasDataChanged(lastTrackedData.current, data)
+    ) {
+      hasUserInteracted.current = true;
+      addToHistory(data);
+    }
+  }, [data, addToHistory, hasDataChanged]);
+
+  useEffect(() => {
+    return () => {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+    };
+  }, []);
+
+  /**
+   * Undo the last change
+   */
+  const undo = useCallback(() => {
+    if (undoStack.length === 0) return;
+
+    isUndoRedoAction.current = true;
+    const currentData = data;
+    const previousEntry = undoStack[undoStack.length - 1];
+
+    setUndoStack((prev) => prev.slice(0, -1));
+    setRedoStack((prev) => [
+      ...prev,
+      { data: { ...currentData }, timestamp: Date.now() },
+    ]);
+
+    setData(previousEntry.data);
+    lastTrackedData.current = previousEntry.data;
+
+    isUndoRedoAction.current = false;
+  }, [undoStack, data, setData]);
+
+  /**
+   * Redo the last undone change
+   */
+  const redo = useCallback(() => {
+    if (redoStack.length === 0) return;
+
+    isUndoRedoAction.current = true;
+    const currentData = data;
+    const nextEntry = redoStack[redoStack.length - 1];
+
+    setRedoStack((prev) => prev.slice(0, -1));
+    setUndoStack((prev) => [
+      ...prev,
+      { data: { ...currentData }, timestamp: Date.now() },
+    ]);
+
+    setData(nextEntry.data);
+    lastTrackedData.current = nextEntry.data;
+
+    isUndoRedoAction.current = false;
+  }, [redoStack, data, setData]);
+
+  /**
+   * Jump to a specific history index
+   */
+  const jumpTo = useCallback(
+    (index: number) => {
+      if (index < 0 || index >= undoStack.length) return;
+
+      isUndoRedoAction.current = true;
+
+      const targetEntry = undoStack[index];
+      const currentData = data;
+
+      // Split stack at index
+      const newUndoStack = undoStack.slice(0, index);
+      const newRedoStack = [
+        ...undoStack.slice(index + 1).reverse(),
+        { data: { ...currentData }, timestamp: Date.now() },
+      ];
+
+      setUndoStack(newUndoStack);
+      setRedoStack(newRedoStack);
+
+      // Apply target state
+      setData(targetEntry.data);
+      lastTrackedData.current = targetEntry.data;
+
+      setTimeout(() => {
+        isUndoRedoAction.current = false;
+      }, 0);
+    },
+    [undoStack, data, setData]
+  );
+
+  /**
+   * Clear all history
+   */
+  const clearHistory = useCallback(() => {
+    setUndoStack([]);
+    setRedoStack([]);
+    lastTrackedData.current = null;
+  }, []);
+
+  return {
+    undo,
+    redo,
+    canUndo: undoStack.length > 0,
+    canRedo: redoStack.length > 0,
+    clearHistory,
+    historySize: undoStack.length,
+    redoSize: redoStack.length,
+    jumpTo,
+  };
+}
+```
+
+```tsx
+import { useQuickFormHistory } from "@/hooks/use-quick-form";
+
+const form = useQuickForm(initialData, schema);
+const history = useQuickFormHistory(form.data, form.setData, { 
+  maxSize: 50,
+  debounceMs: 300 
+});
+
+// Works perfectly with array operations
+toggleInArray('tags', 'react'); // Creates history entry
+history.undo(); // Restores previous array state
+
+<button onClick={history.undo} disabled={!history.canUndo}>Undo</button>
+<button onClick={history.redo} disabled={!history.canRedo}>Redo</button>
+```
+
+### useQuickFormAnalytics
+
+Tracks form interactions and provides insights.
+
+```typescript title="hooks/use-quick-form/useQuickFormAnalytics.ts"
+"use client";
+import { useRef, useCallback, useMemo, useEffect, useState } from "react";
+import type { FormStateRef } from "./useQuickForm";
+
+export interface FormAnalytics {
+  /** Number of interactions per field */
+  fieldInteractions: Record<string, number>;
+  /** Time spent on each field in milliseconds */
+  timeOnField: Record<string, number>;
+  /** Fields that were focused but left empty */
+  abandonedFields: string[];
+  /** Form completion rate (0-1) */
+  completionRate: number;
+  /** Error rate per field (0-1) */
+  errorRate: Record<string, number>;
+  /** Timestamp when form was first interacted with */
+  formStartTime: number | null;
+  /** Timestamp when form was submitted */
+  formEndTime: number | null;
+  /** Total time spent on form in milliseconds */
+  totalFormTime: number;
+}
+
+export interface UseQuickFormAnalyticsReturn {
+  /** Current analytics data */
+  analytics: FormAnalytics;
+  /** Track field focus event */
+  trackFocus: (field: string) => void;
+  /** Track field blur event */
+  trackBlur: (field: string) => void;
+  /** Track form submission */
+  trackSubmit: () => void;
+  /** Reset all analytics */
+  resetAnalytics: () => void;
+}
+
+/**
+ * Type helper to extract form data type from form ref
+ */
+type ExtractFormDataType<T> = T extends React.RefObject<FormStateRef<
+  infer U
+> | null>
+  ? U
+  : never;
+
+/**
+ * A performant analytics hook that tracks form interactions and provides insights.
+ *
+ * @param formRef - Reference to the form state from useQuickForm
+ * @returns Analytics data and tracking utilities
+ *
+ * @example
+ * ```tsx
+ * const form = useQuickForm(initialData, schema);
+ * const analytics = useQuickFormAnalytics(form.ref);
+ *
+ * <input
+ *   onFocus={() => analytics.trackFocus('email')}
+ *   onBlur={() => analytics.trackBlur('email')}
+ * />
+ *
+ * <button onClick={() => {
+ *   handleSubmit();
+ *   analytics.trackSubmit();
+ * }}>Submit</button>
+ * ```
+ */
+export function useQuickFormAnalytics<
+  T extends React.RefObject<FormStateRef<any> | null>
+>(formRef: T): UseQuickFormAnalyticsReturn {
+  const fieldInteractionsRef = useRef<Record<string, number>>({});
+  const timeOnFieldRef = useRef<Record<string, number>>({});
+  const fieldFocusTimeRef = useRef<Record<string, number>>({});
+  const abandonedFieldsRef = useRef<Set<string>>(new Set());
+  const fieldErrorCountRef = useRef<Record<string, number>>({});
+  const fieldTotalCountRef = useRef<Record<string, number>>({});
+  const formStartTimeRef = useRef<number | null>(null);
+  const formEndTimeRef = useRef<number | null>(null);
+  const previousErrorsRef = useRef<Record<string, string | undefined>>({});
+
+  const [updateCounter, setUpdateCounter] = useState(0);
+  const triggerUpdate = useCallback(() => {
+    setUpdateCounter((c) => c + 1);
+  }, []);
+
+  /**
+   * Track field focus
+   */
+  const trackFocus = useCallback((field: string) => {
+    const now = Date.now();
+
+    // Initialize form start time on first interaction
+    if (!formStartTimeRef.current) {
+      formStartTimeRef.current = now;
+    }
+
+    // Track interaction count
+    fieldInteractionsRef.current[field] =
+      (fieldInteractionsRef.current[field] || 0) + 1;
+
+    // Record focus time for calculating time on field
+    fieldFocusTimeRef.current[field] = now;
+
+    // Initialize total count for error rate calculation
+    if (!fieldTotalCountRef.current[field]) {
+      fieldTotalCountRef.current[field] = 0;
+    }
+  }, []);
+
+  /**
+   * Track field blur - O(1) operation
+   */
+  const trackBlur = useCallback(
+    (field: string) => {
+      const now = Date.now();
+      const focusTime = fieldFocusTimeRef.current[field];
+
+      if (focusTime) {
+        // Accumulate time spent on field
+        const duration = now - focusTime;
+        timeOnFieldRef.current[field] =
+          (timeOnFieldRef.current[field] || 0) + duration;
+        delete fieldFocusTimeRef.current[field];
+      }
+
+      // Check if field was abandoned (focused but left empty)
+      const formState = formRef.current;
+      if (formState) {
+        const value = formState.data[field as keyof ExtractFormDataType<T>];
+        const isEmpty =
+          value === "" ||
+          value === null ||
+          value === undefined ||
+          (Array.isArray(value) && value.length === 0);
+
+        if (isEmpty && fieldInteractionsRef.current[field] > 0) {
+          abandonedFieldsRef.current.add(field);
+        } else {
+          abandonedFieldsRef.current.delete(field);
+        }
+      }
+
+      triggerUpdate();
+    },
+    [formRef, triggerUpdate]
+  );
+
+  /**
+   * Track form submission
+   */
+  const trackSubmit = useCallback(() => {
+    formEndTimeRef.current = Date.now();
+    triggerUpdate();
+  }, [triggerUpdate]);
+
+  /**
+   * Track error and data changes efficiently
+   */
+  useEffect(() => {
+    const formState = formRef.current;
+    if (!formState) return;
+
+    const currentErrors = formState.errors;
+
+    // Compare with previous errors
+    Object.keys(currentErrors).forEach((field) => {
+      const hadError = previousErrorsRef.current[field];
+      const hasError = currentErrors[field];
+
+      // Increment error count if new error appeared
+      if (hasError && !hadError) {
+        fieldErrorCountRef.current[field] =
+          (fieldErrorCountRef.current[field] || 0) + 1;
+        fieldTotalCountRef.current[field] =
+          (fieldTotalCountRef.current[field] || 0) + 1;
+      } else if (!hasError && hadError) {
+        // Increment total count when error is fixed
+        fieldTotalCountRef.current[field] =
+          (fieldTotalCountRef.current[field] || 0) + 1;
+      }
+    });
+
+    previousErrorsRef.current = { ...currentErrors };
+    triggerUpdate();
+  }, [
+    formRef,
+    JSON.stringify(formRef.current?.data),
+    JSON.stringify(formRef.current?.errors),
+    triggerUpdate,
+  ]);
+
+  const analytics = useMemo((): FormAnalytics => {
+    const formState = formRef.current;
+    if (!formState) {
+      return {
+        fieldInteractions: {},
+        timeOnField: {},
+        abandonedFields: [],
+        completionRate: 0,
+        errorRate: {},
+        formStartTime: null,
+        formEndTime: null,
+        totalFormTime: 0,
+      };
+    }
+
+    // Calculate completion rate
+    const allFields = Object.keys(formState.data);
+    const filledFields = allFields.filter((key) => {
+      const value = formState.data[key as keyof typeof formState.data];
+      const hasError = (formState.errors as Record<string, string | undefined>)[
+        key
+      ];
+
+      if (hasError) {
+        return false;
+      }
+
+      if (Array.isArray(value)) {
+        return value.length > 0;
+      }
+      return value !== "" && value !== null && value !== undefined;
+    });
+    const completionRate =
+      allFields.length > 0 ? filledFields.length / allFields.length : 0;
+
+    // Calculate error rate per field
+    const errorRate: Record<string, number> = {};
+    Object.keys(fieldTotalCountRef.current).forEach((field) => {
+      const total = fieldTotalCountRef.current[field];
+      const errors = fieldErrorCountRef.current[field] || 0;
+      errorRate[field] = total > 0 ? errors / total : 0;
+    });
+
+    // Calculate total form time
+    const totalFormTime =
+      formStartTimeRef.current && formEndTimeRef.current
+        ? formEndTimeRef.current - formStartTimeRef.current
+        : formStartTimeRef.current
+        ? Date.now() - formStartTimeRef.current
+        : 0;
+
+    return {
+      fieldInteractions: { ...fieldInteractionsRef.current },
+      timeOnField: { ...timeOnFieldRef.current },
+      abandonedFields: Array.from(abandonedFieldsRef.current),
+      completionRate,
+      errorRate,
+      formStartTime: formStartTimeRef.current,
+      formEndTime: formEndTimeRef.current,
+      totalFormTime,
+    };
+  }, [formRef, updateCounter]);
+
+  /**
+   * Reset analytics
+   */
+  const resetAnalytics = useCallback(() => {
+    fieldInteractionsRef.current = {};
+    timeOnFieldRef.current = {};
+    fieldFocusTimeRef.current = {};
+    abandonedFieldsRef.current.clear();
+    fieldErrorCountRef.current = {};
+    fieldTotalCountRef.current = {};
+    formStartTimeRef.current = null;
+    formEndTimeRef.current = null;
+    previousErrorsRef.current = {};
+    triggerUpdate();
+  }, [triggerUpdate]);
+
+  return {
+    analytics,
+    trackFocus,
+    trackBlur,
+    trackSubmit,
+    resetAnalytics,
+  };
+}
+```
+
+```tsx
+import { useQuickFormAnalytics } from "@/hooks/use-quick-form";
+
+const form = useQuickForm(initialData, schema);
+const analytics = useQuickFormAnalytics(form.ref);
+
+<input 
+  onFocus={() => analytics.trackFocus('email')}
+  onBlur={() => analytics.trackBlur('email')}
+/>
+
+// Analytics properly handles array fields
+console.log(analytics.analytics.completionRate); // Accounts for empty arrays
+console.log(analytics.analytics.abandonedFields); // Includes array fields
+```
+
+## Advanced Usage
+
+### Form State Management
+
+```tsx
+const MyForm = () => {
+  const form = useQuickForm(initialData, schema);
+  
+  // Check if specific field has been touched
+  const isEmailTouched = form.touched('email');
+  
+  // Get current field value
+  const currentEmail = form.get('email');
+  
+  // Check for any errors
+  const hasErrors = form.hasError();
+  
+  // Check if form is dirty
+  const isFormDirty = form.isDirty;
+  
+  return (
+    <div>
+      {isFormDirty && <p>You have unsaved changes</p>}
+      {hasErrors && <p>Please fix the errors below</p>}
+      
+      <input
+        value={currentEmail}
+        onChange={(e) => form.set('email', e.target.value)}
+        className={isEmailTouched && form.errors.email ? 'error' : ''}
+      />
+    </div>
+  );
+};
+```
+
+### Module Integration
+
+```tsx
+const AdvancedForm = () => {
+  // Core form
+  const form = useQuickForm(initialData, schema);
+  
+  // Add history management
+  const history = useQuickFormHistory(form.data, form.setData, {
+    maxSize: 100,
+    debounceMs: 500
+  });
+  
+  // Add analytics tracking
+  const analytics = useQuickFormAnalytics(form.ref);
+  
+  return (
+    <div>
+      <form onSubmit={form.submit(handleSubmit)}>
+        {/* Form fields */}
+        
+        {/* History controls */}
+        <div>
+          <button onClick={history.undo} disabled={!history.canUndo}>
+            Undo
+          </button>
+          <button onClick={history.redo} disabled={!history.canRedo}>
+            Redo
+          </button>
+        </div>
+        
+        {/* Analytics info */}
+        <div>
+          <p>Completion: {Math.round(analytics.analytics.completionRate * 100)}%</p>
+          <p>Time spent: {analytics.analytics.totalFormTime}ms</p>
+        </div>
+      </form>
+    </div>
+  );
+};
+```
+
+
+### Best Practices
+
+```tsx
+// ✅ Good: Use the provided methods
+const handleChange = (field, value) => {
+  form.set(field, value);
+};
+
+// ❌ Avoid: Direct state manipulation
+const handleChange = (field, value) => {
+  setFormData(prev => ({ ...prev, [field]: value }));
+};
+
+// ✅ Good: Use toggleInArray for arrays
+const handleTagToggle = (tag) => {
+  form.toggleInArray('tags', tag);
+};
+
+// ❌ Avoid: Manual array manipulation
+const handleTagToggle = (tag) => {
+  const newTags = data.tags.includes(tag)
+    ? data.tags.filter(t => t !== tag)
+    : [...data.tags, tag];
+  form.set('tags', newTags);
+};
+```
+
+## TypeScript Support
+
+The hook is fully typed with TypeScript:
+
+```typescript
+import type { 
+  UseQuickFormReturn,
+  FormState,
+  FormActions,
+  FormErrors,
+  ValidationOption,
+  CustomValidator
+} from "@/hooks/use-quick-form";
+
+// Type-safe form data
+interface FormData {
+  email: string;
+  password: string;
+  interests: string[];
+  isSubscribed: boolean;
+}
+
+const form: UseQuickFormReturn<FormData> = useQuickForm(initialData, schema);
+
+// Type-safe field access
+form.set('email', 'user@example.com'); // ✅ Type-safe
+form.set('email', 123); // ❌ Type error
+form.toggleInArray('interests', 'react'); // ✅ Type-safe
+```

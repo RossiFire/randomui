@@ -1,0 +1,46 @@
+---
+title: use-breakpoints
+description: Utility hook to define breakpoints given the screen size  
+---
+
+## Demo
+<UseBreakpointsDemo />
+
+## Installation
+
+This hook is based on the [use-screen-size](./use-screen-size.mdx) hook.
+
+Copy and paste the following code into your project.
+
+```typescript title="use-breakpoints.ts"
+import useScreenSize from "@/hooks/use-screen-size";
+
+const MOBILE_WIDTH = 768;
+const TABLET_WIDTH = 1024;
+
+export type BreakPoints = {
+    isMobile: boolean;
+    isTablet: boolean;
+    isDesktop: boolean;
+}
+
+export const useBreakPoints = (): BreakPoints => {
+
+    const { width } = useScreenSize();
+    
+    const isMobile = width < MOBILE_WIDTH;
+    const isTablet = width >= MOBILE_WIDTH && width < TABLET_WIDTH;
+    const isDesktop = width >= TABLET_WIDTH;
+
+    return { isMobile, isTablet, isDesktop };
+}
+```
+
+## Usage
+
+```typescript
+import { useBreakPoints } from "@/hooks/use-breakpoints";
+```
+```tsx
+const { isMobile, isTablet, isDesktop } = useBreakPoints();
+```

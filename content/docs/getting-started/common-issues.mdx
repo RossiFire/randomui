@@ -1,0 +1,23 @@
+---
+title: Common Issues
+description: Common issues you might encounter while using Random UI
+---
+
+
+## `use client` directive
+Most components are written for NextJs and they use the `use client` directive to work correctly. 
+If you're using React, you might need to remove it. Just keep in mind it!
+
+
+## Tailwind issues
+
+By default, Tailwind resets the styles for most of base elements, 
+like `ul`, `input`, `textarea`, etc., and all the components here are build on that principle.
+
+For example, the marquee component uses the `ul` element to display the content, but you'll not see the "list-none" class applied,
+since Tailwind remove it by default.
+
+But if you're using third party styles that rely on tailwind, those might extend or change base styles, breaking the components.
+So make sure that the base styles are not overridden by third party ones, 
+or alternatively, you can add the needed classes by yourself when copying the components.
+

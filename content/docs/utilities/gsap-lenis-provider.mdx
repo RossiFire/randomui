@@ -1,0 +1,102 @@
+---
+title: Gsap Lenis provider
+description: Lenis smooth scrolling provider compatible with Gsap
+---
+
+<PageBadge badges={['gsap']} />
+
+## About
+Lenis is a smooth scrolling library for React. This provider integrates the Lenis smooth scrolling library, adding compatibility with Gsap ScrollTrigger module.
+
+## Demo
+<GsapLenisScrollDemo />
+
+## Installation
+
+Install the following dependencies:
+
+<Tabs items={['npm', 'pnpm', 'yarn', 'bun']}>
+  <Tab value="npm">
+    ```shell
+    npm install lenis gsap
+    ```
+  </Tab>
+  <Tab value="pnpm">
+    ```shell
+    pnpm add lenis gsap
+    ```
+  </Tab>
+  <Tab value="yarn">
+    ```shell
+    yarn add lenis gsap
+    ```
+  </Tab>
+  <Tab value="bun">
+    ```shell
+    bun add lenis gsap
+    ```
+  </Tab>
+</Tabs>
+
+Copy and paste the following code into your project.
+
+```tsx title="providers/LenisProvider.tsx"
+'use client'
+import React, {PropsWithChildren, useEffect} from 'react'
+import {ReactLenis} from 'lenis/react'
+import {gsap} from 'gsap'
+import {ScrollTrigger} from 'gsap/ScrollTrigger'
+
+const LenisProvider = ({children}: PropsWithChildren) => {
+  useEffect(() => {
+    const lenis = (window as any).lenis
+
+    if (lenis) {
+      lenis.on('scroll', ScrollTrigger.update)
+
+      gsap.ticker.add((time) => {
+        lenis.raf(time * 1000)
+      })
+
+      gsap.ticker.lagSmoothing(0)
+    }
+  }, [])
+
+  return (
+    <ReactLenis root>
+      {children}
+    </ReactLenis>
+  )
+}
+
+export default LenisProvider
+```
+
+## Usage
+
+```typescript
+import LenisProvider from "@/providers/LenisProvider";
+```
+```tsx title="app/layout.tsx"
+<LenisProvider>{children}</LenisProvider>
+```
+
+## Common Issues
+
+### Nested Scrolls
+
+If you have nested scrolls, you can add the `data-lenis-prevent` attribute to those scroll containers, to prevent them from being affected by the Lenis smooth scrolling.
+
+```tsx
+
+// Root scroll
+<LenisProvider>
+<div 
+  className="nested-scrollable-container"
+  data-lenis-prevent // Prevent lenis scroll
+>
+</div>
+
+</LenisProvider>
+
+```

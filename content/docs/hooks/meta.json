@@ -1,0 +1,13 @@
+{
+    "title": "Hooks",
+    "description": "Hooks to use in your Nextjs project",
+    "pages": [
+        "use-quick-form",
+        "use-hydration",
+        "use-screen-size",
+        "use-breakpoints",
+        "use-detect-device",
+        "use-privacy-compliant",
+        "use-os"
+    ]
+}

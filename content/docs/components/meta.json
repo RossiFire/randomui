@@ -1,0 +1,14 @@
+{
+    "title": "Components",
+    "description": "Components to use in your projects",
+    "pages": [
+        "window-menu",
+        "magnet",
+        "noisy-background",
+        "markee",
+        "stacked-cards",
+        "floating-menu",
+        "ripple-button",
+        "cclock"
+    ]
+}
