@@ -6,7 +6,7 @@ Shout out to Gemini who made this logo
 
 ## 📦 Documentation
 
-Visit the [documentation website](https://randomui.com) for documentation and interactive examples.
+Visit the [documentation website](https://www.randomui.dev/) for documentation and interactive examples.
 
 
 ## ℹ️ About
