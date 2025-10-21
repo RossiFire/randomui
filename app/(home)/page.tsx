@@ -7,7 +7,7 @@ export default function HomePage() {
   return (
     <HomeMenu>
       <div className='relative h-svh w-full bg-fd-background overflow-hidden flex flex-col justify-center text-center'>
-        <div className='absolute inset-0 h-full w-full z-[1] opacity-75'>
+        <div className='fixed inset-0 h-full w-full z-[1] opacity-75'>
           <PixelBlast
             variant="circle"
             pixelSize={6}

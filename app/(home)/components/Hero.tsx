@@ -13,11 +13,7 @@ import TechBadge from "@/components/ui/tech-badge";
 
 gsap.registerPlugin(SplitText);
 
-interface HeroProps {
-    
-}
- 
-const Hero: React.FC<HeroProps> = () => {
+const Hero: React.FC = () => {
 
     useGSAP(() => {
         const splitText = new SplitText(".hero-text", {
