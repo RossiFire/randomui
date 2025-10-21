@@ -1,8 +1,6 @@
 import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
 import { majorFont } from './fonts';
 import { cn } from 'fumadocs-ui/utils/cn';
-import Image from 'next/image';
-import logo from '@/public/assets/rui_logo_long.png';
 
 /**
  * Shared layout configurations

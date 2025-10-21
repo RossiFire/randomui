@@ -15,7 +15,7 @@ export const source = loader({
         file(node, file) {
           if(file){
             const fileData = this.storage.read(file);
-            if(fileData && (fileData.data as any).hot_item) {
+            if(fileData && (fileData.data as unknown as { hot_item?: boolean }).hot_item) {
               node.name = <div className='flex gap-2 items-center'>
                 {node.name}
                 <FlameIcon className="size-4 fill-fd-error/50 stroke-fd-error" />
