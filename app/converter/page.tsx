@@ -181,7 +181,7 @@ const ConverterPage: React.FC = () => {
                 </Button>
               )}
             </div>
-            {isLoading && <span className="text-sm text-fd-muted-foreground">Since this conversion tool is free to use, it might take a few to convert your files. Thank you for your patience.</span>}
+            {isLoading && <span className="text-sm text-fd-muted-foreground max-w-2xl mx-auto text-center">Since this conversion tool is free to use, it might takes a few to convert your files. Thank you for your patience. (credits will finish at some point)</span>}
             <span className="italic text-fd-muted-foreground text-xs mx-auto text-center">AI make mistakes, so don&apos;t trust it.</span>
           </>
         )}
