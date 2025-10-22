@@ -50,6 +50,11 @@ const WindowMenu: React.FC<WindowMenuProps> = ({ children }) => {
   useGSAP(() => {
 
     const paddingLeftRight = isMobile ? 12 : 30;
+
+    gsap.set(".corners", {
+      opacity: 0,
+      scale: 1.2,
+    });
     
     const tl = gsap.timeline();
 
