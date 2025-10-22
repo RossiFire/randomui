@@ -1,19 +1,17 @@
-export type HandledResponse<T> =
+export type HandledResponse<D,E = never> =
   | {
-      data: T;
-      error: null;
+      data: D;
+      error?: E;
     }
   | {
-      data: null;
-      error: string;
+      data?: never;
+      error?: E;
     };
 
-export const ok = <T>(data: T): HandledResponse<T> => ({
+export const ok = <D,E = never>(data: D): HandledResponse<D,E> => ({
   data,
-  error: null,
 });
 
-export const err = <T>(error: string): HandledResponse<T> => ({
-  data: null,
+export const err = <D,E = never>(error: E): HandledResponse<D,E> => ({
   error,
 });

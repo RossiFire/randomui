@@ -1,16 +1,17 @@
 ---
 title: Handled Response
-description: Utility function to handle responses with type safety and readability
+description: Utility snippet to handle responses with type safety and readability
 ---
 
 <PageBadge badges={['typescript']} />
 
 ## Philosophy
 
-This utility function is particularly useful to handle responses from API calls, server actions, or any other operations that can return a success or an error. It has several benefits:
+This utility snippet is particularly useful to handle responses from API calls, server actions, or any other operations that can return success or failure. It has several benefits:
 
-- **Type safe**: It enforces type safety and readability. It also benefits from generic type.
+- **Type safety**: It enforces type safety and readability. It also benefits from generic types.
 - **Readability**: It's more readable than the traditional try/catch block.
+- **Flexibility**: You can define data type and error type separately, or use the same type for both.
 - **Pattern matching**: It enhances Single Responsibility Principle (SRP) by separating the logic of the response from the logic of the request, letting you handle the response as you want.
 
 ## Installation
@@ -18,23 +19,21 @@ This utility function is particularly useful to handle responses from API calls,
 Copy and paste the following code into your project.
 
 ```ts title="lib/handled-response.ts"
-export type HandledResponse<T> =
+export type HandledResponse<D, E = D> =
   | {
-      data: T;
-      error: null;
+      data: D;
+      error?: never;
     }
   | {
-      data: null;
-      error: string;
+      data?: never;
+      error?: E;
     };
 
-export const ok = <T>(data: T): HandledResponse<T> => ({
+export const ok = <D, E = D>(data: D): HandledResponse<D, E> => ({
   data,
-  error: null,
 });
 
-export const err = <T>(error: string): HandledResponse<T> => ({
-  data: null,
+export const err = <D, E = D>(error: E): HandledResponse<D, E> => ({
   error,
 });
 ```
@@ -45,7 +44,45 @@ export const err = <T>(error: string): HandledResponse<T> => ({
 import { HandledResponse, ok, err } from "@/lib/handled-response";
 ```
 
-### Handling API
+### Same return type
+
+```ts
+import { HandledResponse, ok, err } from "@/lib/handled-response";
+
+// Imagine this is your API call or database query
+async function getPostMessageCrud(postId: string): Promise<HandledResponse<string>> {
+  try {
+    const post = await db.findById(postId);
+    if (!post) {
+      return err("Post not found"); // Automatically narrows the type to { error: string }
+    }
+    return ok(post.message); // Automatically narrows the type to { data: string }
+  }
+}
+```
+
+Then
+
+```ts
+async function getPostMessage(postId: string) {
+  const { error, data } = await getPostMessageCrud(postId);
+
+  data?.name; // Error: data is never, does not exist
+
+  if (error) {
+    // Type narrowed: error is string
+    console.error("Failed to fetch user:", error);
+    return;
+  }
+  
+  // Type narrowed: data is string
+  console.log("Post message found:", data);
+}
+```
+
+
+
+### Different return types
 
 Suppose you have a function that fetches user data from a database or an API. You want to strictly handle the possible outcomes (success or error) with type safety.
 
@@ -53,13 +90,13 @@ Suppose you have a function that fetches user data from a database or an API. Yo
 import { HandledResponse, ok, err } from "@/lib/handled-response";
 
 // Imagine this is your API call or database query
-async function fetchUserById(userId: string): Promise<HandledResponse<User>> {
+async function fetchUserById(userId: string): Promise<HandledResponse<User,string>> {
   try {
     const user = await db.findUser(userId);
     if (!user) {
-      return err("User not found");
+      return err("User not found"); // Automatically narrows the type to { error: string }
     }
-    return ok(user);
+    return ok(user); // Automatically narrows the type to { data: User }
   } catch (error) {
     return err("Unexpected error");
   }
@@ -73,10 +110,10 @@ async function handleUserRequest(userId: string) {
   const { error, data } = await fetchUserById(userId);
 
 
-  data?.name; // Warning: data is possibly undefined
+  data?.name; // Error: data is never, does not exist
 
   if (error) {
-    // Type narrowed: error is not null
+    // Type narrowed: error is string
     console.error("Failed to fetch user:", error);
     return;
   }
@@ -85,4 +122,3 @@ async function handleUserRequest(userId: string) {
   console.log("User found:", data.name, data.email);
 }
 ```
-
