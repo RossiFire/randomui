@@ -10,6 +10,7 @@ import { Star } from "lucide-react";
 import Link from "next/link";
 import { Markee } from "@/components/markee";
 import TechBadge from "@/components/ui/tech-badge";
+import GradientBorderButton from "@/components/gradient-border-button";
 
 gsap.registerPlugin(SplitText);
 
@@ -53,6 +54,9 @@ const Hero: React.FC = () => {
 
     return (
         <div className="flex flex-col items-center justify-center gap-8 z-[2] px-4 md:px-0">
+                <GradientBorderButton className="hover:scale-105 transition-transform duration-300 mb-12">
+                    <Link href="/converter">Try the new AI code converter</Link>
+                </GradientBorderButton>
             <h1 className={cn("text-3xl md:text-4xl lg:text-6xl text-fd-foreground hero-text", majorFont)}>Random UI</h1>
             <h2 className={cn("text-base md:text-xl lg:text-2xl text-fd-muted-foreground px-2 md:px-0", interFont)}>A collection of reusable components, hooks, utilities and more</h2>
             <Markee 
