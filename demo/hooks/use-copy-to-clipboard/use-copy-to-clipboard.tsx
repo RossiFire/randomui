@@ -1,0 +1,116 @@
+import { useState, useCallback } from "react";
+
+interface UseCopyToClipboardOptions {
+  /**
+   * Reset the success state after a certain number of milliseconds
+   * @default 2000
+   */
+  resetAfter?: number;
+}
+
+interface UseCopyToClipboardReturn {
+  /**
+   * Whether the last copy operation was successful
+   */
+  isCopied: boolean;
+  /**
+   * Whether the copy operation is in progress
+   */
+  isCopying: boolean;
+  /**
+   * The last copied text
+   */
+  copiedText: string | null;
+  /**
+   * Copy text to clipboard
+   */
+  copy: (text: string) => Promise<boolean>;
+}
+
+/**
+ * A hook for copying text to the clipboard with success/error states
+ *
+ * @param options Configuration options for the hook
+ * @returns Object containing copy function and state
+ *
+ * @example
+ * ```tsx
+ * const { copy, isCopied, isCopying, copiedText, reset } = useCopyToClipboard({
+ *   resetAfter: 3000,
+ *   onSuccess: (text) => console.log('Copied:', text),
+ *   onError: (error) => console.error('Copy failed:', error)
+ * })
+ *
+ * const handleCopy = () => {
+ *   copy('Hello, World!')
+ * }
+ * ```
+ */
+export function useCopyToClipboard(
+  options: UseCopyToClipboardOptions = {}
+): UseCopyToClipboardReturn {
+  const { resetAfter = 2000 } = options;
+
+  const [isCopied, setIsCopied] = useState(false);
+  const [isCopying, setIsCopying] = useState(false);
+  const [copiedText, setCopiedText] = useState<string | null>(null);
+
+  const copy = useCallback(
+    async (text: string): Promise<boolean> => {
+      if (!text) return false;
+
+      setIsCopying(true);
+      setIsCopied(false);
+      setCopiedText(null);
+
+      try {
+        // Check if the Clipboard API is available
+        if (navigator?.clipboard?.writeText) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          // Fallback for older browsers
+          const textArea = document.createElement("textarea");
+          textArea.value = text;
+          textArea.style.position = "fixed";
+          textArea.style.left = "-999999px";
+          textArea.style.top = "-999999px";
+          document.body.appendChild(textArea);
+          textArea.focus();
+          textArea.select();
+
+          const successful = document.execCommand("copy");
+          document.body.removeChild(textArea);
+
+          if (!successful) {
+            throw new Error("Failed to copy text using fallback method");
+          }
+        }
+
+        setIsCopied(true);
+        setCopiedText(text);
+
+        // Auto-reset after specified time
+        if (resetAfter > 0) {
+          setTimeout(() => {
+            setIsCopied(false);
+            setCopiedText(null);
+          }, resetAfter);
+        }
+
+        return true;
+      } catch {
+        return false;
+      } finally {
+        setIsCopying(false);
+      }
+    },
+    [resetAfter]
+  );
+
+  return {
+    isCopied,
+    isCopying,
+    copiedText,
+    copy,
+  };
+}

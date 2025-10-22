@@ -8,6 +8,7 @@
         "use-breakpoints",
         "use-detect-device",
         "use-privacy-compliant",
-        "use-os"
+        "use-os",
+        "use-copy-to-clipboard"
     ]
 }

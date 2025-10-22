@@ -16,6 +16,7 @@ import PageBadge from "@/components/ui/page-badge";
 import { CClockDemo, CClockCounterDemo } from "./components/cclock/demo";
 import MarqueeDemo from "./components/marquee/demo";
 import UseOsDemo from "./hooks/use-os/demo";
+import CopyToClipboardDemo from "./hooks/use-copy-to-clipboard/demo";
 
 export { 
     UseScreenSizeDemo, 
@@ -38,4 +39,5 @@ export {
     PageBadge,
     MarqueeDemo,
     UseOsDemo,
+    CopyToClipboardDemo,
 };
