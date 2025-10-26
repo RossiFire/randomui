@@ -1,0 +1,275 @@
+---
+title: Animated Text Block
+description: Smooth animated text block with GSAP
+hot_item: true
+---
+
+<PageBadge badges={[ 'gsap', 'tailwind' ]} />
+
+
+## Demo
+<AnimatedTextBlockDemo />
+
+## Installation
+
+Install the following dependencies:
+
+<Tabs items={['npm', 'pnpm', 'yarn', 'bun']}>
+  <Tab value="npm">
+    ```shell
+    npm install gsap
+    ```
+  </Tab>
+  <Tab value="pnpm">
+    ```shell
+    pnpm add gsap
+    ```
+  </Tab>
+  <Tab value="yarn">
+    ```shell
+    yarn add gsap
+    ```
+  </Tab>
+  <Tab value="bun">
+    ```shell
+    bun add gsap
+    ```
+  </Tab>
+</Tabs>
+
+
+Copy and paste the following code into your project.
+```tsx title="animated-text-block.tsx"
+"use client";
+
+import { useGSAP } from "@gsap/react";
+import gsap from "gsap";
+
+
+const AnimatedTextBlock: React.FC = () => {
+
+  const runAnimation = () => {
+    gsap.set(".faded-text", { clipPath: "inset(0px 100% 0px 0px)" });
+    gsap.set(".high-line-reveal", { scaleX: 1 });
+
+    const tl = gsap.timeline();
+    tl.to(".faded-text", {
+      clipPath: "inset(0px 0% 0px 0px)",
+      duration: 0.6,
+      stagger: 0.2,
+      ease: "power2.inOut",
+    }).to(
+      ".faded-text .high-line-reveal",
+      {
+        scaleX: 0,
+        duration: 0.6,
+        stagger: 0.2,
+        ease: "power4.inOut",
+      },
+      "<20%"
+    );
+  };
+
+  return (
+        <div className="flex flex-col gap-12 justify-center items-center">
+            <div className="flex flex-col gap-0 whitespace-pre-wrap items-center text-center">
+                <TextLineReveal><strong className={cn("text-[#e17055]",prata.className)}>REDEFINING</strong> WEB,</TextLineReveal>
+                <TextLineReveal>CHASING <strong className={cn("text-[#e17055]",prata.className)}>PERFORMANCE</strong>,</TextLineReveal>
+                <TextLineReveal>BRINGING IT ALL IN</TextLineReveal>
+                <TextLineReveal>ALL WAYS. DEFINING A</TextLineReveal>
+                <TextLineReveal><strong className={cn("text-[#e17055]",prata.className)}>STANDARD</strong> WITH RUI</TextLineReveal>
+                <TextLineReveal>ON AND OFF THE</TextLineReveal>
+                <TextLineReveal>WEB.</TextLineReveal>
+            </div>
+            <button onClick={runAnimation}>
+                Animate
+            </button>
+        </div>
+    )
+};
+
+
+const TextLineReveal: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  return (
+    <span
+      className={cn(
+        "faded-text text-2xl md:text-4xl lg:text-6xl font-bold uppercase relative text-fd-foreground leading-[60px] md:leading-[100px] -tracking-wider",
+        interFont
+      )}
+    >
+      {children}
+      <div className="absolute bottom-0 left-0 w-full h-full high-line-reveal bg-[#e17055] will-change-transform scale-x-0 origin-[right_center]"></div>
+    </span>
+  );
+};
+
+export default AnimatedTextBlock;
+```
+
+## Usage
+
+### Basic
+
+```tsx title="animated-text-block.tsx"
+return (
+    <AnimatedTextBlock />
+)
+```
+
+### With `ScrollTrigger`
+
+To use the component with ScrollTrigger, you need first to install the following dependency:
+
+<Tabs items={['npm', 'pnpm', 'yarn', 'bun']}>
+  <Tab value="npm">
+    ```shell
+    npm install @gsap/react
+    ```
+  </Tab>
+  <Tab value="pnpm">
+    ```shell
+    pnpm add @gsap/react
+    ```
+  </Tab>
+  <Tab value="yarn">
+    ```shell
+    yarn add @gsap/react
+  </Tab>
+  <Tab value="bun">
+    ```shell
+    bun add @gsap/react
+    ```
+  </Tab>
+</Tabs>
+
+Import the followings to your component:
+
+```tsx title="animated-text-block.tsx"
+import { useGSAP } from "@gsap/react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
+```
+
+Then remove the `runAnimation` function and replace it with `useGSAP` hook.
+
+```tsx title="animated-text-block.tsx"
+// Previous:
+const runAnimation = () => {
+    gsap.set(".faded-text", { clipPath: "inset(0px 100% 0px 0px)" });
+    gsap.set(".high-line-reveal", { scaleX: 1 });
+
+    const tl = gsap.timeline();
+    tl.to(".faded-text", {
+        clipPath: "inset(0px 0% 0px 0px)",
+        duration: 0.6,
+        stagger: 0.2,
+        ease: "power2.inOut",
+    }).to(
+        ".faded-text .high-line-reveal",
+        {
+            scaleX: 0,
+            duration: 0.6,
+            stagger: 0.2,
+            ease: "power4.inOut",
+        },
+        "<20%"
+    );
+};
+
+// New:
+useGSAP(()=>{
+
+    const tl = gsap.timeline({
+        scrollTrigger: {
+            trigger: "#text-line-section",
+            start: "top 70%",
+        },
+    });
+    tl.to(".faded-text", {
+        clipPath: "inset(0px 0% 0px 0px)",
+        duration: 0.6,
+        stagger: 0.2,
+        ease: "power2.inOut",
+    }).to(
+        ".faded-text .high-line-reveal",
+        {
+            scaleX: 0,
+            duration: 0.6,
+            stagger: 0.2,
+            ease: "power4.inOut",
+        },
+        "<20%"
+    );
+
+});
+```
+
+## Techbook
+
+I want to take a moment to focus on some concepts about this component.
+
+When working with animations, finding the right combination of **timing** and **easing** to make the animation looks smooth and natural is the key.
+You also need to consider the context where the animation is going to be used.
+
+For example, this is an alternative implementation with a different timing and easing.
+
+<Tabs items={['demo', 'animation']}>
+    <Tab value="demo" className="p-0">
+        <AnimatedTextBlockAlternativeDemo />
+    </Tab>
+    <Tab value="animation">
+    ```tsx
+        const tl = gsap.timeline();
+        tl.to(".faded-text", {
+            clipPath: "inset(0px 0% 0px 0px)",
+            duration: 0.8,
+            stagger: 0.05,
+            ease: "power2.out",
+        }).to(
+            ".faded-text .high-line-reveal",
+            {
+                scaleX: 0,
+                duration: 0.8,
+                stagger: 0.05,
+                ease: "power4.inOut",
+            },
+            "<20%"
+        );
+    ```
+    </Tab>
+</Tabs>
+
+And If it seems a bit awkward, maybe it has just a wrong timing, like this one:
+
+
+<Tabs items={['demo', 'animation']}>
+    <Tab value="demo" className="p-0">
+        <AnimatedTextBlockWrongDemo />
+    </Tab>
+    <Tab value="animation">
+    ```tsx
+    const tl = gsap.timeline();
+      tl.to(".faded-text", {
+        clipPath: "inset(0px 0% 0px 0px)",
+        duration: 0.3,
+        stagger: 0.05,
+        ease: "sine.inOut",
+      }).to(
+        ".faded-text .high-line-reveal",
+        {
+          scaleX: 0,
+          duration: 1,
+          stagger: 0.2,
+          ease: "power4.inOut",
+        },
+        "<20%"
+      );
+    ```
+    </Tab>
+</Tabs>
+
+This is something that goes beyond the library to use or the component itself, it's a matter of trial and error. 
+So don't be scared to experiment and find the right timing for your specific use case!
