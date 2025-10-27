@@ -2,11 +2,11 @@
 import InputFile from "@/components/ui/file-input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { accomplishCodeMigrationTool, ChatResponse } from "@/actions/coddeMigrationTool";
 import { CodeBlock, Pre } from "@/components/codeblock";
 import { Loader2, AlertCircle, Download, HomeIcon, IterationCwIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { ChatResponse } from "../api/code-migration/route";
 
 type OutputFormat = "vue" | "jsx" | "tsx" | "svelte";
 
@@ -68,19 +68,15 @@ const ConverterPage: React.FC = () => {
         name: file.name,
         code: await file.text(),
       })));
-      const { error, data } = await accomplishCodeMigrationTool({ 
-        files: filesContent, 
-        outputFormat: outputFormat as OutputFormat
+      const response = await fetch("/api/code-migration", { 
+        method: "POST",
+        body: JSON.stringify({ files: filesContent, outputFormat: outputFormat as OutputFormat }),
       });
-
-      if (error) {
-        setError(error);
-        return;
-      }
-
-      setConvertedFiles(data!);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An unexpected error occurred");
+      const { success, data, error } = await response.json();
+      if (!success) throw new Error(error);
+      setConvertedFiles(data);
+    } catch (error) {
+      setError("Oops!...an unexpected error occurred, please try again later.");
     } finally {
       setIsLoading(false);
     }
