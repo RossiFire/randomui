@@ -93,7 +93,7 @@ const Hero: React.FC = () => {
                     {techBadges.map((badge, i) => (
                         <Fragment key={i}>
                             {badge}
-                            <MarkeeSpacer className="w-12 md:w-4" />
+                            <MarkeeSpacer className="w-4" />
                         </Fragment>
                     ))}
                 </MarkeeContent>
