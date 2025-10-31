@@ -229,6 +229,35 @@ const Markee = React.forwardRef<HTMLDivElement, MarkeeProps>(
                 </li>
               ))}
             </ul>
+                        <style jsx>{`
+              .pause-on-hover:hover .marquee-list {
+                animation-play-state: paused;
+              }
+
+              @media (prefers-reduced-motion: reduce) {
+                .marquee-list {
+                  animation-play-state: paused !important;
+                }
+              }
+
+              @keyframes marquee-scroll {
+                from {
+                  transform: translateX(0);
+                }
+                to {
+                  transform: translateX(-100%);
+                }
+              }
+
+              @keyframes marquee-scroll-infinite {
+                from {
+                  transform: translateX(100%);
+                }
+                to {
+                  transform: translateX(0);
+                }
+              }
+            `}</style>
           </div>
         </MarkeeContentContext.Provider>
       </MarkeeContext.Provider>
@@ -277,11 +306,12 @@ Use `MarkeeSpacer` to add spacing between items.
 <Markee duration={20}>
   <MarkeeFade direction="left" />
   <MarkeeContent>
-    <TechBadge badge="nextjs" />
+    <span>Item 1</span>
     <MarkeeSpacer className="w-12" />
-    <TechBadge badge="react" />
+    <span>Item 2</span>
     <MarkeeSpacer className="w-12" />
-    <TechBadge badge="typescript" />
+    <span>Item 3</span>
+    <MarkeeSpacer className="w-12" />
   </MarkeeContent>
   <MarkeeFade direction="right" />
 </Markee>
@@ -292,18 +322,17 @@ Use `MarkeeSpacer` to add spacing between items.
 The component handles dynamic content and nested fragments gracefully.
 
 ```tsx
-const items = [
-  <TechBadge badge="nextjs" />,
-  <TechBadge badge="react" />,
-  <TechBadge badge="typescript" />,
+const logos = [
+  <BrandLogo logo="logo_one" />,
+  <BrandLogo logo="logo_two" />,
 ];
 
 <Markee>
   <MarkeeFade direction="left" />
   <MarkeeContent>
-    {items.map((item, i) => (
+    {logos.map((logo, i) => (
       <>
-        {item}
+        {logo}
         <MarkeeSpacer className="w-4" />
       </>
     ))}
