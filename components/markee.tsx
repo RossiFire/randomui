@@ -1,6 +1,9 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
+const MarkeeContext = React.createContext<boolean>(false);
+const MarkeeContentContext = React.createContext<boolean>(false);
+
 interface MarkeeProps extends React.HTMLAttributes<HTMLDivElement> {
   /**
    * Whether to reverse the animation
@@ -22,14 +25,83 @@ interface MarkeeProps extends React.HTMLAttributes<HTMLDivElement> {
    * @default false
    */
   pauseOnHover?: boolean;
-  /**
-   * Gap between items. Pass a string for static gap or an object for responsive breakpoints.
-   * @default "1rem"
-   * @example "2rem" - static gap
-   * @example { "0px": "1rem", "768px": "2rem", "1024px": "3rem" } - responsive gap
-   */
-  gap?: string | Record<string, string>;
 }
+
+interface MarkeeSpacerProps extends React.HTMLAttributes<HTMLDivElement> {}
+
+const MarkeeSpacer = React.forwardRef<HTMLDivElement, MarkeeSpacerProps>(
+  ({ className, ...props }, ref) => {
+    const isInContent = React.useContext(MarkeeContentContext);
+    
+    if (!isInContent) {
+      console.error("MarkeeSpacer must be used inside a MarkeeContent component");
+      return null;
+    }
+
+    return (
+      <div
+        ref={ref}
+        className={cn("shrink-0 w-4", className)}
+        aria-hidden="true"
+        {...props}
+      />
+    );
+  }
+);
+
+MarkeeSpacer.displayName = "MarkeeSpacer";
+
+interface MarkeeContentProps {
+  children?: React.ReactNode;
+}
+
+const MarkeeContent = ({ children }: MarkeeContentProps) => {
+  const isInMarkee = React.useContext(MarkeeContext);
+  
+  if (!isInMarkee) {
+    console.error("MarkeeContent must be used inside a Markee component");
+    return null;
+  }
+
+  return <>{children}</>;
+};
+
+MarkeeContent.displayName = "MarkeeContent";
+
+interface MarkeeFadeProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "direction"> {
+  /**
+   * The direction of the fade effect
+   */
+  direction: "left" | "right";
+}
+
+const MarkeeFade = React.forwardRef<HTMLDivElement, MarkeeFadeProps>(
+  ({ className, direction, ...props }, ref) => {
+    const isInMarkee = React.useContext(MarkeeContext);
+    
+    if (!isInMarkee) {
+      console.error("MarkeeFade must be used inside a Markee component");
+      return null;
+    }
+
+    return (
+      <div
+        ref={ref}
+        aria-hidden="true"
+        className={cn(
+          "absolute top-0 h-full w-12 z-10 pointer-events-none",
+          direction === "left"
+            ? "left-0 bg-gradient-to-r from-fd-background to-transparent"
+            : "right-0 bg-gradient-to-l from-fd-background to-transparent",
+          className
+        )}
+        {...props}
+      />
+    );
+  }
+);
+
+MarkeeFade.displayName = "MarkeeFade";
 
 const Markee = React.forwardRef<HTMLDivElement, MarkeeProps>(
   (
@@ -40,27 +112,50 @@ const Markee = React.forwardRef<HTMLDivElement, MarkeeProps>(
       duration = 10,
       ease = "linear",
       pauseOnHover = false,
-      gap = "1rem",
       ...props
     },
     ref
   ) => {
-    const items = React.Children.toArray(children);
+    const fadeDirections = React.useRef<Set<"left" | "right">>(new Set());
+    
+    // Memoize flattenChildren to avoid recreating on every render
+    const flattenChildren = React.useCallback((nodes: React.ReactNode): React.ReactNode[] => {
+      return React.Children.toArray(nodes).flatMap((node) => {
+        if (React.isValidElement(node) && node.type === React.Fragment) {
+          const fragmentProps = node.props as { children?: React.ReactNode };
+          return flattenChildren(fragmentProps.children);
+        }
+        return node;
+      });
+    }, []);
 
-    const breakpointStyles = React.useMemo(() => {
-      const breakpoints =
-        typeof gap === "string"
-          ? { "0px": gap }
-          : { "0px": "1rem", ...gap };
+    // Separate fades from content and track fade directions
+    const { fades, contentItems } = React.useMemo(() => {
+      const childrenArray = React.Children.toArray(children);
+      const fadesArray: React.ReactNode[] = [];
+      const contentArray: React.ReactNode[] = [];
+      
+      fadeDirections.current.clear();
 
-      return Object.entries(breakpoints)
-        .sort(([a], [b]) => parseInt(a) - parseInt(b))
-        .map(
-          ([key, value]) =>
-            `@media screen and (min-width: ${key}) { .marquee-container { --marquee-gap: ${value}; } }`
-        )
-        .join("\n");
-    }, [gap]);
+      React.Children.forEach(childrenArray, (child) => {
+        if (React.isValidElement(child)) {
+          if (child.type === MarkeeFade) {
+            const fadeProps = child.props as MarkeeFadeProps;
+            if (fadeDirections.current.has(fadeProps.direction)) {
+              console.error(`MarkeeFade with direction "${fadeProps.direction}" already exists in this Markee component`);
+            } else {
+              fadeDirections.current.add(fadeProps.direction);
+              fadesArray.push(child);
+            }
+          } else if (child.type === MarkeeContent) {
+            const props = child.props as MarkeeContentProps;
+            contentArray.push(...flattenChildren(props.children));
+          }
+        }
+      });
+
+      return { fades: fadesArray, contentItems: contentArray };
+    }, [children, flattenChildren]);
 
     const animationStyle = React.useMemo(
       () => ({
@@ -73,93 +168,59 @@ const Markee = React.forwardRef<HTMLDivElement, MarkeeProps>(
     );
 
     return (
-      <div
-        ref={ref}
-        className={cn(
-          "relative flex overflow-hidden max-w-fit marquee-container gap-[var(--marquee-gap)]",
-          pauseOnHover && "pause-on-hover",
-          className
-        )}
-        role="region"
-        aria-label="Marquee content"
-        aria-live="off"
-        {...props}
-      >
-        <div
-          aria-hidden="true"
-          className="absolute top-0 left-0 h-full w-12 bg-gradient-to-r from-fd-background to-transparent z-10 pointer-events-none"
-        />
-        <div
-          aria-hidden="true"
-          className="absolute top-0 right-0 h-full w-12 bg-gradient-to-l from-fd-background to-transparent z-10 pointer-events-none"
-        />
+      <MarkeeContext.Provider value={true}>
+        <MarkeeContentContext.Provider value={true}>
+          <div
+            ref={ref}
+            className={cn(
+              "relative flex overflow-hidden max-w-fit marquee-container",
+              pauseOnHover && "pause-on-hover",
+              className
+            )}
+            role="region"
+            aria-label="Scrolling content"
+            aria-live="polite"
+            {...props}
+          >
+            {fades}
+            
+            <ul
+              style={{
+                ...animationStyle,
+                animationName: "marquee-scroll",
+              }}
+              className="flex list-none shrink-0 justify-around min-w-full marquee-list"
+              role="list"
+            >
+              {contentItems.map((item, i) => (
+                <li key={i} role="listitem">
+                  {item}
+                </li>
+              ))}
+            </ul>
 
-        <ul
-          style={{
-            ...animationStyle,
-            animationName: "scroll",
-          }}
-          className="flex list-none shrink-0 justify-around gap-[var(--marquee-gap)] min-w-full marquee-list"
-        >
-          {items.map((item, i) => (
-            <li key={i} aria-label={`Marquee item ${i + 1}`}>
-              {item}
-            </li>
-          ))}
-        </ul>
-
-        <ul
-          aria-hidden="true"
-          className="flex list-none shrink-0 justify-around gap-[var(--marquee-gap)] min-w-full absolute top-0 left-0 marquee-list"
-          style={{
-            ...animationStyle,
-            animationName: "infinite-marquee-scroll",
-          }}
-        >
-          {items.map((item, i) => (
-            <li key={i} aria-label={`Marquee item ${i + 1}`}>
-              {item}
-            </li>
-          ))}
-        </ul>
-
-        <style jsx>{`
-          ${breakpointStyles}
-
-          .pause-on-hover:hover .marquee-list {
-            animation-play-state: paused;
-          }
-
-          @media (prefers-reduced-motion: reduce) {
-            .marquee-list {
-              animation-play-state: paused !important;
-            }
-          }
-
-          @keyframes scroll {
-            from {
-              transform: translateX(0);
-            }
-            to {
-              transform: translateX(calc(-100% - var(--marquee-gap)));
-            }
-          }
-
-          @keyframes infinite-marquee-scroll {
-            from {
-              transform: translateX(calc(100% + var(--marquee-gap)));
-            }
-            to {
-              transform: translateX(0);
-            }
-          }
-        `}</style>
-      </div>
+            <ul
+              aria-hidden="true"
+              style={{
+                ...animationStyle,
+                animationName: "marquee-scroll-infinite",
+              }}
+              className="flex list-none shrink-0 justify-around min-w-full absolute top-0 left-0 marquee-list"
+            >
+              {contentItems.map((item, i) => (
+                <li key={i}>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </MarkeeContentContext.Provider>
+      </MarkeeContext.Provider>
     );
   }
 );
 
 Markee.displayName = "Markee";
 
-export { Markee };
-export type { MarkeeProps };
+export { Markee, MarkeeSpacer, MarkeeFade, MarkeeContent };
+export type { MarkeeProps, MarkeeSpacerProps, MarkeeFadeProps, MarkeeContentProps };
