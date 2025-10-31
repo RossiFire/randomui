@@ -6,11 +6,11 @@
     "pages": [
       "getting-started",
       "contribute",
+      "---Utilities---",
+      "...utilities",
       "---Components---",
       "...components",
       "---Hooks---",
-      "...hooks",
-      "---Utilities---",
-      "...utilities"
+      "...hooks"
     ]
   }

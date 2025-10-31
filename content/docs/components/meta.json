@@ -4,6 +4,7 @@
     "pages": [
         "window-menu",
         "magnet",
+        "animated-text-block",
         "noisy-background",
         "markee",
         "stacked-cards",

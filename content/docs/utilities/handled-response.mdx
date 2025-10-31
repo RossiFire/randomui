@@ -67,7 +67,7 @@ Then
 async function getPostMessage(postId: string) {
   const { error, data } = await getPostMessageCrud(postId);
 
-  data?.name; // Error: data is never, does not exist
+  data?.name; // Error: data is optional, so it might not exist
 
   if (error) {
     // Type narrowed: error is string
@@ -110,7 +110,7 @@ async function handleUserRequest(userId: string) {
   const { error, data } = await fetchUserById(userId);
 
 
-  data?.name; // Error: data is never, does not exist
+  data?.name; // Error: data is optional, so it might not exist
 
   if (error) {
     // Type narrowed: error is string
