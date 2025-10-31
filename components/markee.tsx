@@ -27,7 +27,7 @@ interface MarkeeProps extends React.HTMLAttributes<HTMLDivElement> {
   pauseOnHover?: boolean;
 }
 
-interface MarkeeSpacerProps extends React.HTMLAttributes<HTMLDivElement> {}
+type MarkeeSpacerProps = React.HTMLAttributes<HTMLDivElement>;
 
 const MarkeeSpacer = React.forwardRef<HTMLDivElement, MarkeeSpacerProps>(
   ({ className, ...props }, ref) => {

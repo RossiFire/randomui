@@ -12,7 +12,7 @@ import { Markee, MarkeeContent, MarkeeFade, MarkeeSpacer } from "@/components/ma
 import TechBadge from "@/components/ui/tech-badge";
 import GradientBorderButton from "@/components/gradient-border-button";
 import { useHydration } from "@/hooks/use-hydration";
-import React, { Fragment } from "react";
+import React from "react";
 
 gsap.registerPlugin(SplitText);
 
@@ -91,10 +91,10 @@ const Hero: React.FC = () => {
                 <MarkeeFade direction="left"/>
                 <MarkeeContent>
                     {techBadges.map((badge, i) => (
-                        <Fragment key={i}>
+                        <React.Fragment key={i}>
                             {badge}
                             <MarkeeSpacer className="w-4" />
-                        </Fragment>
+                        </React.Fragment>
                     ))}
                 </MarkeeContent>
                 <MarkeeFade direction="right" />
