@@ -67,13 +67,13 @@ const Hero: React.FC = () => {
 
     if(!isMounted) return null;
     const techBadges = [
-        <TechBadge badge="nextjs" />,
-        <TechBadge badge="gsap" />,
-        <TechBadge badge="react" />,
-        <TechBadge badge="typescript" />,
-        <TechBadge badge="framer_motion" />,
-        <TechBadge badge="tailwind" />,
-        <TechBadge badge="css" />,
+        <TechBadge key="nextjs" badge="nextjs" />,
+        <TechBadge key="gsap" badge="gsap" />,
+        <TechBadge key="react" badge="react" />,
+        <TechBadge key="typescript" badge="typescript" />,
+        <TechBadge key="framer_motion" badge="framer_motion" />,
+        <TechBadge key="tailwind" badge="tailwind" />,
+        <TechBadge key="css" badge="css" />,
     ]
     return (
         <div className="flex flex-col items-center justify-center gap-8 z-[2] px-4 md:px-0">
