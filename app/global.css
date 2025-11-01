@@ -6,6 +6,30 @@
 @import 'fumadocs-ui/css/preset.css';
 
 
+@theme {
+    --animate-markee-scroll: markee-scroll;
+    --animate-markee-scroll-hidden: markee-scroll-hidden;
+
+    @keyframes markee-scroll {
+        from {
+          transform: translateX(0);
+        }
+        to {
+          transform: translateX(-100%);
+        }
+      }
+
+      @keyframes markee-scroll-hidden {
+        from {
+          transform: translateX(100%);
+        }
+        to {
+          transform: translateX(0);
+        }
+      }
+}
+
+
 
 @keyframes noise {
     0%, 100% {
@@ -53,9 +77,6 @@
       @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2;
     }
 
-    .pause-animation {
-        animation-play-state: paused;
-    }
 
     @keyframes spin {
         from {
@@ -68,6 +89,5 @@
     
     .animate-spin-slow {
         animation: spin 3s linear infinite;
-    }
-    
+    } 
   }

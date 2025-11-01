@@ -84,18 +84,14 @@ const Hero: React.FC = () => {
                 </GradientBorderButton>
             <h1 className={cn("text-3xl md:text-4xl lg:text-6xl text-fd-foreground hero-text", majorFont)}>Random UI</h1>
             <h2 className={cn("text-base md:text-xl lg:text-2xl text-fd-muted-foreground px-2 md:px-0", interFont)}>A collection of reusable components, hooks, utilities and more</h2>
-            <Markee 
-                className="w-full md:w-1/2 lg:w-1/3"
-            >
+            <Markee className="w-full md:w-1/2 lg:w-1/3">
                 <MarkeeFade direction="left"/>
-                <MarkeeContent duration={15} >
+                <MarkeeContent duration={15} pauseOnHover={true}>
                     {techBadges.map((badge, i) => (
-                        <React.Fragment key={i}>
-                            <MarkeeItem>
-                                {badge}
-                            </MarkeeItem>
+                        <>
+                            <MarkeeItem key={i}>{badge}</MarkeeItem>
                             <MarkeeSpacer className="w-4" />
-                        </React.Fragment>
+                        </>
                     ))}
                 </MarkeeContent>
                 <MarkeeFade direction="right" />

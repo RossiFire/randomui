@@ -9,8 +9,9 @@ function Markee({ children, className,...props}: React.ComponentProps<"div">) {
   return (
     <MarkeeContext.Provider value={true}>
       <div
+        data-slot="markee"
         className={cn(
-          "relative flex overflow-hidden max-w-fit marquee-container",
+          "relative flex overflow-hidden max-w-fit markee-container",
           className
         )}
         role="region"
@@ -19,44 +20,45 @@ function Markee({ children, className,...props}: React.ComponentProps<"div">) {
         {...props}
       >
       {children}
-        <style jsx>{`
-          .pause-on-hover:hover .marquee-list {
-            animation-play-state: paused;
-          }
-
-          @media (prefers-reduced-motion: reduce) {
-            .marquee-list {
-              animation-play-state: paused !important;
-            }
-          }
-
-          @keyframes marquee-scroll {
-            from {
-              transform: translateX(0);
-            }
-            to {
-              transform: translateX(-100%);
-            }
-          }
-
-          @keyframes marquee-scroll-infinite {
-            from {
-              transform: translateX(100%);
-            }
-            to {
-              transform: translateX(0);
-            }
-          }
-        `}</style>
       </div>
     </MarkeeContext.Provider>
   );
 }
 Markee.displayName = "Markee";
 
+function MarkeeFade({
+  className,
+  direction,
+  ...props
+}: React.ComponentProps<"div"> & { direction: "left" | "right" }) {
+  const isInMarkee = React.useContext(MarkeeContext);
+
+  if (!isInMarkee) {
+    console.error("MarkeeFade must be used inside a Markee component");
+    return null;
+  }
+
+  return (
+    <div
+      aria-hidden="true"
+      data-slot="markee-fade"
+      className={cn(
+        "absolute top-0 h-full w-12 z-10 pointer-events-none",
+        direction === "left"
+          ? "left-0 bg-gradient-to-r from-fd-background to-transparent"
+          : "right-0 bg-gradient-to-l from-fd-background to-transparent",
+        className
+      )}
+      {...props}
+    />
+  );
+}
+MarkeeFade.displayName = "MarkeeFade";
+
 function MarkeeSpacer({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
+      data-slot="markee-spacer"
       className={cn("shrink-0 w-4", className)}
       aria-hidden="true"
       aria-label="Marquee spacer"
@@ -64,12 +66,7 @@ function MarkeeSpacer({ className, ...props }: React.ComponentProps<"div">) {
     />
   );
 }
-MarkeeSpacer.displayName = "MarqueeSpacer";
-
-function MarkeeItem({ ...props }: React.ComponentProps<"li">) {
-  return <li role="listitem" {...props} />;
-}
-MarkeeItem.displayName = "MarkeeItem";
+MarkeeSpacer.displayName = "MarkeeSpacer";
 
 interface MarkeeContentProps extends React.ComponentProps<"ul"> {
   /**
@@ -93,7 +90,7 @@ interface MarkeeContentProps extends React.ComponentProps<"ul"> {
    */
   pauseOnHover?: boolean;
 }
-function MarkeeContent({ duration = 10, ease = "linear", reverse = false, pauseOnHover = false, ...props }: MarkeeContentProps) {
+function MarkeeContent({ duration = 10, ease = "linear", reverse = false, pauseOnHover = false, className, ...props }: MarkeeContentProps) {
   const isInMarkee = React.useContext(MarkeeContext);
 
   if (!isInMarkee) {
@@ -105,7 +102,6 @@ function MarkeeContent({ duration = 10, ease = "linear", reverse = false, pauseO
     () => ({
       animationDuration: `${duration}s`,
       animationTimingFunction: ease,
-      animationIterationCount: "infinite" as const,
       animationDirection: reverse ? ("reverse" as const) : ("normal" as const),
     }),
     [duration, ease, reverse]
@@ -114,16 +110,26 @@ function MarkeeContent({ duration = 10, ease = "linear", reverse = false, pauseO
 
   return <MarkeeContentContext.Provider value={true}>
     <ul
-      style={{ ...animationStyle, animationName: "marquee-scroll" }}
-      className="flex list-none shrink-0 justify-around min-w-full marquee-list"
+      data-slot="markee-content"
+      style={{ ...animationStyle }}
+      className={cn(
+        "flex shrink-0 justify-around min-w-full animate-markee-scroll [animation-iteration-count:infinite] motion-reduce:[animation-play-state:paused]", 
+        pauseOnHover && "[&:hover]:[animation-play-state:paused]",
+        className
+      )}
       role="list"
       aria-label="Marquee content list"
       {...props}
     />
     
     <ul
-      style={{ ...animationStyle, animationName: "marquee-scroll-infinite" }}
-      className="flex list-none shrink-0 justify-around min-w-full absolute top-0 left-0 marquee-list"
+      data-slot="markee-content-hidden"
+      style={{ ...animationStyle }}
+      className={cn(
+        "flex shrink-0 justify-around min-w-full absolute top-0 left-0 animate-markee-scroll-hidden [animation-iteration-count:infinite] motion-reduce:[animation-play-state:paused]", 
+        pauseOnHover && "[&:hover]:[animation-play-state:paused]", 
+        className
+      )}
       {...props}
       aria-hidden="true"
     />
@@ -131,33 +137,14 @@ function MarkeeContent({ duration = 10, ease = "linear", reverse = false, pauseO
 }
 MarkeeContent.displayName = "MarkeeContent";
 
-function MarkeeFade({
-  className,
-  direction,
-  ...props
-}: React.ComponentProps<"div"> & { direction: "left" | "right" }) {
-  const isInMarkee = React.useContext(MarkeeContext);
-
-  if (!isInMarkee) {
-    console.error("MarkeeFade must be used inside a Markee component");
-    return null;
-  }
-
-  return (
-    <div
-      aria-hidden="true"
-      className={cn(
-        "absolute top-0 h-full w-12 z-10 pointer-events-none",
-        direction === "left"
-          ? "left-0 bg-gradient-to-r from-fd-background to-transparent"
-          : "right-0 bg-gradient-to-l from-fd-background to-transparent",
-        className
-      )}
-      {...props}
-    />
-  );
+function MarkeeItem({ ...props }: React.ComponentProps<"li">) {
+  return <li 
+  data-slot="markee-item"
+  role="listitem" 
+  aria-label="Marquee item"
+  {...props} />;
 }
-MarkeeFade.displayName = "MarkeeFade";
+MarkeeItem.displayName = "MarkeeItem";
 
 export { Markee, MarkeeSpacer, MarkeeFade, MarkeeContent, MarkeeItem };
 export type { MarkeeContentProps };
