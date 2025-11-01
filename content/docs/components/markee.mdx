@@ -46,9 +46,9 @@ Markee.displayName = "Markee";
 
 function MarkeeFade({
   className,
-  direction,
+  position,
   ...props
-}: React.ComponentProps<"div"> & { direction: "left" | "right" }) {
+}: React.ComponentProps<"div"> & { position: "left" | "right" }) {
   const isInMarkee = React.useContext(MarkeeContext);
 
   if (!isInMarkee) {
@@ -62,7 +62,7 @@ function MarkeeFade({
       data-slot="markee-fade"
       className={cn(
         "absolute top-0 h-full w-12 z-10 pointer-events-none",
-        direction === "left"
+        position === "left"
           ? "left-0 bg-gradient-to-r from-background to-transparent"
           : "right-0 bg-gradient-to-l from-background to-transparent",
         className
@@ -108,14 +108,14 @@ interface MarkeeContentProps extends React.ComponentProps<"ul"> {
    */
   pauseOnHover?: boolean;
 }
-function MarkeeContent({ duration = 10, ease = "linear", reverse = false, pauseOnHover = false, className, ...props }: MarkeeContentProps) {
-  const isInMarkee = React.useContext(MarkeeContext);
-
-  if (!isInMarkee) {
-    console.error("MarkeeContent must be used inside a Markee component");
-    return null;
-  }
-
+function MarkeeContent({ 
+  duration = 10, 
+  ease = "linear", 
+  reverse = false, 
+  pauseOnHover = false, 
+  className, 
+  ...props 
+}: MarkeeContentProps) {
   const animationStyle = React.useMemo(
     () => ({
       animationDuration: `${duration}s`,
@@ -124,7 +124,13 @@ function MarkeeContent({ duration = 10, ease = "linear", reverse = false, pauseO
     }),
     [duration, ease, reverse]
   );
-
+  
+  const isInMarkee = React.useContext(MarkeeContext);
+  
+  if (!isInMarkee) {
+    console.error("MarkeeContent must be used inside a Markee component");
+    return null;
+  }
 
   return <MarkeeContentContext.Provider value={true}>
     <ul

@@ -45,8 +45,8 @@ function MarkeeFade({
       className={cn(
         "absolute top-0 h-full w-12 z-10 pointer-events-none",
         position === "left"
-          ? "left-0 bg-gradient-to-r from-fd-background to-transparent"
-          : "right-0 bg-gradient-to-l from-fd-background to-transparent",
+          ? "left-0 bg-gradient-to-r from-background to-transparent"
+          : "right-0 bg-gradient-to-l from-background to-transparent",
         className
       )}
       {...props}
@@ -90,14 +90,14 @@ interface MarkeeContentProps extends React.ComponentProps<"ul"> {
    */
   pauseOnHover?: boolean;
 }
-function MarkeeContent({ duration = 10, ease = "linear", reverse = false, pauseOnHover = false, className, ...props }: MarkeeContentProps) {
-  const isInMarkee = React.useContext(MarkeeContext);
-
-  if (!isInMarkee) {
-    console.error("MarkeeContent must be used inside a Markee component");
-    return null;
-  }
-
+function MarkeeContent({ 
+  duration = 10, 
+  ease = "linear", 
+  reverse = false, 
+  pauseOnHover = false, 
+  className, 
+  ...props 
+}: MarkeeContentProps) {
   const animationStyle = React.useMemo(
     () => ({
       animationDuration: `${duration}s`,
@@ -106,7 +106,13 @@ function MarkeeContent({ duration = 10, ease = "linear", reverse = false, pauseO
     }),
     [duration, ease, reverse]
   );
-
+  
+  const isInMarkee = React.useContext(MarkeeContext);
+  
+  if (!isInMarkee) {
+    console.error("MarkeeContent must be used inside a Markee component");
+    return null;
+  }
 
   return <MarkeeContentContext.Provider value={true}>
     <ul

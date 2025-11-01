@@ -85,7 +85,7 @@ const Hero: React.FC = () => {
             <h1 className={cn("text-3xl md:text-4xl lg:text-6xl text-fd-foreground hero-text", majorFont)}>Random UI</h1>
             <h2 className={cn("text-base md:text-xl lg:text-2xl text-fd-muted-foreground px-2 md:px-0", interFont)}>A collection of reusable components, hooks, utilities and more</h2>
             <Markee className="w-full md:w-1/2 lg:w-1/3">
-                <MarkeeFade position="left"/>
+                <MarkeeFade position="left" className="from-fd-background"/>
                 <MarkeeContent duration={15}>
                     {techBadges.map((badge, i) => (
                         <React.Fragment key={i}>
@@ -94,7 +94,7 @@ const Hero: React.FC = () => {
                         </React.Fragment>
                     ))}
                 </MarkeeContent>
-                <MarkeeFade position="right" />
+                <MarkeeFade position="right" className="from-fd-background"/>
             </Markee>
             <div className="mt-20 flex items-center gap-4">
                 <RippleButton 
