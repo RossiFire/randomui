@@ -8,7 +8,7 @@ import RippleButton from "@/app/components/RippleButton";
 import { Button } from "@/components/ui/button";
 import { Star } from "lucide-react";
 import Link from "next/link";
-import { Markee, MarkeeContent, MarkeeFade, MarkeeSpacer } from "@/components/markee";
+import { Markee, MarkeeContent, MarkeeFade, MarkeeSpacer, MarkeeItem } from "@/components/markee";
 import TechBadge from "@/components/ui/tech-badge";
 import GradientBorderButton from "@/components/gradient-border-button";
 import { useHydration } from "@/hooks/use-hydration";
@@ -85,14 +85,15 @@ const Hero: React.FC = () => {
             <h1 className={cn("text-3xl md:text-4xl lg:text-6xl text-fd-foreground hero-text", majorFont)}>Random UI</h1>
             <h2 className={cn("text-base md:text-xl lg:text-2xl text-fd-muted-foreground px-2 md:px-0", interFont)}>A collection of reusable components, hooks, utilities and more</h2>
             <Markee 
-                duration={15} 
                 className="w-full md:w-1/2 lg:w-1/3"
             >
                 <MarkeeFade direction="left"/>
-                <MarkeeContent>
+                <MarkeeContent duration={15} >
                     {techBadges.map((badge, i) => (
                         <React.Fragment key={i}>
-                            {badge}
+                            <MarkeeItem>
+                                {badge}
+                            </MarkeeItem>
                             <MarkeeSpacer className="w-4" />
                         </React.Fragment>
                     ))}
