@@ -211,13 +211,13 @@ import {
 
 ```tsx
 <Markee>
-  <MarkeeFade direction="left" />
+  <MarkeeFade position="left" />
   <MarkeeContent>
     <MarkeeItem>Item 1</MarkeeItem>
     <MarkeeItem>Item 2</MarkeeItem>
     <MarkeeItem>Item 3</MarkeeItem>
   </MarkeeContent>
-  <MarkeeFade direction="right" />
+  <MarkeeFade position="right" />
 </Markee>
 ```
 
@@ -225,7 +225,7 @@ import {
 
 ```tsx
 <Markee>
-  <MarkeeFade direction="left" />
+  <MarkeeFade position="left" />
   <MarkeeContent duration={20}>
     <MarkeeItem>Item 1</MarkeeItem>
     <MarkeeSpacer className="w-12" />
@@ -233,7 +233,7 @@ import {
     <MarkeeSpacer className="w-12" />
     <MarkeeItem>Item 3</MarkeeItem>
   </MarkeeContent>
-  <MarkeeFade direction="right" />
+  <MarkeeFade position="right" />
 </Markee>
 ```
 
@@ -243,7 +243,7 @@ import {
 const items = ["Item 1", "Item 2", "Item 3"];
 
 <Markee>
-  <MarkeeFade direction="left" />
+  <MarkeeFade position="left" />
   <MarkeeContent>
     {items.map((item, i) => (
       <React.Fragment key={i}>
@@ -252,7 +252,7 @@ const items = ["Item 1", "Item 2", "Item 3"];
       </React.Fragment>
     ))}
   </MarkeeContent>
-  <MarkeeFade direction="right" />
+  <MarkeeFade position="right" />
 </Markee>
 ```
 
@@ -273,12 +273,12 @@ const items = ["Item 1", "Item 2", "Item 3"];
 
 ```tsx
 <Markee>
-  <MarkeeFade direction="left" className="w-16" />
+  <MarkeeFade position="left" className="w-16" />
   <MarkeeContent>
     <MarkeeItem>Item 1</MarkeeItem>
     <MarkeeItem>Item 2</MarkeeItem>
   </MarkeeContent>
-  <MarkeeFade direction="right" className="w-16" />
+  <MarkeeFade position="right" className="w-16" />
 </Markee>
 ```
 
@@ -300,7 +300,7 @@ const items = ["Item 1", "Item 2", "Item 3"];
 
 ```tsx
 <Markee>
-  <MarkeeFade direction="left" />
+  <MarkeeFade position="left" />
   <MarkeeContent 
     reverse={true} 
     duration={20} 
@@ -310,7 +310,7 @@ const items = ["Item 1", "Item 2", "Item 3"];
     <MarkeeItem>Item 1</MarkeeItem>
     <MarkeeItem>Item 2</MarkeeItem>
   </MarkeeContent>
-  <MarkeeFade direction="right" />
+  <MarkeeFade position="right" />
 </Markee>
 ```
 
@@ -361,7 +361,7 @@ Component for adding fade effects on the edges. Must be used inside `Markee` as 
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
-| `direction` | `"left" \| "right"` | - | Fade direction (required) |
+| `position` | `"left" \| "right"` | - | Fade position (required) |
 | `className` | `string` | - | Additional CSS classes. Default includes `w-12` |
 
 ## Accessibility

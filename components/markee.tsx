@@ -28,9 +28,9 @@ Markee.displayName = "Markee";
 
 function MarkeeFade({
   className,
-  direction,
+  position,
   ...props
-}: React.ComponentProps<"div"> & { direction: "left" | "right" }) {
+}: React.ComponentProps<"div"> & { position: "left" | "right" }) {
   const isInMarkee = React.useContext(MarkeeContext);
 
   if (!isInMarkee) {
@@ -44,7 +44,7 @@ function MarkeeFade({
       data-slot="markee-fade"
       className={cn(
         "absolute top-0 h-full w-12 z-10 pointer-events-none",
-        direction === "left"
+        position === "left"
           ? "left-0 bg-gradient-to-r from-fd-background to-transparent"
           : "right-0 bg-gradient-to-l from-fd-background to-transparent",
         className
