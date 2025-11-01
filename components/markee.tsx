@@ -213,6 +213,35 @@ const Markee = React.forwardRef<HTMLDivElement, MarkeeProps>(
                 </li>
               ))}
             </ul>
+            <style jsx>{`
+              .pause-on-hover:hover .marquee-list {
+                animation-play-state: paused;
+              }
+
+              @media (prefers-reduced-motion: reduce) {
+                .marquee-list {
+                  animation-play-state: paused !important;
+                }
+              }
+
+              @keyframes marquee-scroll {
+                from {
+                  transform: translateX(0);
+                }
+                to {
+                  transform: translateX(-100%);
+                }
+              }
+
+              @keyframes marquee-scroll-infinite {
+                from {
+                  transform: translateX(100%);
+                }
+                to {
+                  transform: translateX(0);
+                }
+              }
+            `}</style>
           </div>
         </MarkeeContentContext.Provider>
       </MarkeeContext.Provider>
