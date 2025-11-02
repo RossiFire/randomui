@@ -2,7 +2,7 @@
 
 import { DemoBlock } from "@/components/demoBlock";
 import TechBadge from "@/components/ui/tech-badge";
-import { MarkeeFade, MarkeeSpacer, Markee, MarkeeContent, MarkeeItem } from "./marquee-demo";
+import { MarkeeFade, MarkeeSpacer, Markee, MarkeeContent, MarkeeItem } from "@/components/markee";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
@@ -28,7 +28,7 @@ const MarqueeDemo: React.FC<MagnetDemoProps> = () => {
         </h2>
         <Markee className="w-full md:w-3/4">
           {showFades && <MarkeeFade position="left" className="from-fd-background" />}
-          <MarkeeContent duration={duration} pauseOnHover={pauseOnHover}>
+          <MarkeeContent duration={duration} pauseOnHover={pauseOnHover} reverse={reverse}>
             <MarkeeItem className="list-none">
               <TechBadge badge="nextjs" />
             </MarkeeItem>
@@ -59,7 +59,7 @@ const MarqueeDemo: React.FC<MagnetDemoProps> = () => {
           </MarkeeContent>
           {showFades && <MarkeeFade position="right" className="from-fd-background" />}
         </Markee>
-        <div className="mt-8 flex gap-4">
+        <div className="mt-8 flex gap-4 flex-wrap w-full justify-center">
             <Button variant="secondary" onClick={() => setShowFades(!showFades)}>
                 Fades {showFades ? "On" : "Off"}
             </Button>
@@ -71,13 +71,16 @@ const MarqueeDemo: React.FC<MagnetDemoProps> = () => {
             </Button>
             <div className="flex items-center gap-2 ml-2">
                 <Button variant="secondary" onClick={() => setDuration(duration - 1)} disabled={duration <= 1}>-</Button>
+                <div className="relative">
+                  <span className="absolute left-0 -bottom-5 flex items-center justify-center text-xs text-fd-muted-foreground">Duration</span>
                 <Input
                     type="number"
                     readOnly
-                    className="w-12 !pl-3 !pr-0 text-center"
+                    className="w-12 !pl-0 md:!pl-3 !pr-0 text-center text-sm md:text-base"
                     value={duration}
                     onChange={(e) => setDuration(Number(e.target.value))}
                 />
+                </div>
                 <Button variant="secondary" onClick={() => setDuration(duration + 1)} disabled={duration >= 30}>+</Button>
             </div>
         </div>

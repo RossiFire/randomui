@@ -138,7 +138,7 @@ function MarkeeContent({
       style={{ ...animationStyle }}
       className={cn(
         "flex shrink-0 justify-around min-w-full animate-markee-scroll [animation-iteration-count:infinite] motion-reduce:[animation-play-state:paused]", 
-        pauseOnHover && "[&:hover]:[animation-play-state:paused]",
+        pauseOnHover && "[&:hover]:[animation-play-state:paused] peer [&:has(+[data-slot='markee-content-hidden']:hover)]:[animation-play-state:paused]",
         className
       )}
       role="list"
@@ -151,7 +151,7 @@ function MarkeeContent({
       style={{ ...animationStyle }}
       className={cn(
         "flex shrink-0 justify-around min-w-full absolute top-0 left-0 animate-markee-scroll-hidden [animation-iteration-count:infinite] motion-reduce:[animation-play-state:paused]", 
-        pauseOnHover && "[&:hover]:[animation-play-state:paused]", 
+        pauseOnHover && "[&:hover]:[animation-play-state:paused] peer-hover:[animation-play-state:paused]", 
         className
       )}
       {...props}
