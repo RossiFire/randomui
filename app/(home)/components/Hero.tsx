@@ -86,7 +86,7 @@ const Hero: React.FC = () => {
             <h2 className={cn("text-base md:text-xl lg:text-2xl text-fd-muted-foreground px-2 md:px-0", interFont)}>A collection of reusable components, hooks, utilities and more</h2>
             <Markee className="w-full md:w-1/2 lg:w-1/3">
                 <MarkeeFade position="left" className="from-fd-background"/>
-                <MarkeeContent duration={15}>
+                <MarkeeContent duration={15} pauseOnHover={true}>
                     {techBadges.map((badge, i) => (
                         <React.Fragment key={i}>
                             <MarkeeItem>{badge}</MarkeeItem>

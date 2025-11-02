@@ -19,7 +19,7 @@ For issues, check the [Common Issues](/docs/getting-started/common-issues) page.
 ## Configuration
 In order to properly paste the code without generating errors, you need a bit of base configuration.
 
-### Tailwind
+### TailwindCSS
 Most of the components use Tailwindcss for styling, so you can follow the official [Tailwindcss guide](https://tailwindcss.com/docs/installation/framework-guides/nextjs) to install it.
 Additionally, install the following dependencies:
 
@@ -58,7 +58,7 @@ export function cn(...inputs: ClassValue[]) {
 ```
 
 ### Path Aliases
-To improve imports readability, I've embraced path aliases for my components. If you want too, add the following lines into the tsconfig.json, otherwise do the f*ck you want.
+To improve imports readability, I've embraced path aliases for my components. If you want too, add the following lines into the tsconfig.json.
 ```json title="tsconfig.json"
 "paths": {
   "@/*": ["./*"],

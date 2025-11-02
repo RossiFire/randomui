@@ -1,7 +1,74 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-interface MarqueeProps extends React.HTMLAttributes<HTMLDivElement> {
+const MarkeeContext = React.createContext<boolean>(false);
+const MarkeeContentContext = React.createContext<boolean>(false);
+
+
+function Markee({ children, className,...props}: React.ComponentProps<"div">) {
+  return (
+    <MarkeeContext.Provider value={true}>
+      <div
+        data-slot="markee"
+        className={cn(
+          "relative flex overflow-hidden max-w-fit markee-container",
+          className
+        )}
+        role="region"
+        aria-label="Marquee content"
+        aria-live="polite"
+        {...props}
+      >
+      {children}
+      </div>
+    </MarkeeContext.Provider>
+  );
+}
+Markee.displayName = "Markee";
+
+function MarkeeFade({
+  className,
+  position,
+  ...props
+}: React.ComponentProps<"div"> & { position: "left" | "right" }) {
+  const isInMarkee = React.useContext(MarkeeContext);
+
+  if (!isInMarkee) {
+    console.error("MarkeeFade must be used inside a Markee component");
+    return null;
+  }
+
+  return (
+    <div
+      aria-hidden="true"
+      data-slot="markee-fade"
+      className={cn(
+        "absolute top-0 h-full w-12 z-10 pointer-events-none",
+        position === "left"
+          ? "left-0 bg-gradient-to-r from-background to-transparent"
+          : "right-0 bg-gradient-to-l from-background to-transparent",
+        className
+      )}
+      {...props}
+    />
+  );
+}
+MarkeeFade.displayName = "MarkeeFade";
+
+function MarkeeSpacer({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="markee-spacer"
+      className={cn("shrink-0 w-4", className)}
+      aria-hidden="true"
+      aria-label="Marquee spacer"
+      {...props}
+    />
+  );
+}
+MarkeeSpacer.displayName = "MarkeeSpacer";
+
+interface MarkeeContentProps extends React.ComponentProps<"ul"> {
   /**
    * Whether to reverse the animation
    * @default false
@@ -22,144 +89,68 @@ interface MarqueeProps extends React.HTMLAttributes<HTMLDivElement> {
    * @default false
    */
   pauseOnHover?: boolean;
-  /**
-   * Gap between items. Pass a string for static gap or an object for responsive breakpoints.
-   * @default "1rem"
-   * @example "2rem" - static gap
-   * @example { "0px": "1rem", "768px": "2rem", "1024px": "3rem" } - responsive gap
-   */
-  gap?: string | Record<string, string>;
 }
-
-const MarqueeDemoComponent = React.forwardRef<HTMLDivElement, MarqueeProps>(
-  (
-    {
-      children,
-      className,
-      reverse = false,
-      duration = 10,
-      ease = "linear",
-      pauseOnHover = false,
-      gap = "1rem",
-      ...props
-    },
-    ref
-  ) => {
-    const items = React.Children.toArray(children);
-
-    const breakpointStyles = React.useMemo(() => {
-      const breakpoints =
-        typeof gap === "string"
-          ? { "0px": gap }
-          : { "0px": "1rem", ...gap };
-
-      return Object.entries(breakpoints)
-        .sort(([a], [b]) => parseInt(a) - parseInt(b))
-        .map(
-          ([key, value]) =>
-            `@media screen and (min-width: ${key}) { .marquee-container { --marquee-gap: ${value}; } }`
-        )
-        .join("\n");
-    }, [gap]);
-
-    const animationStyle = React.useMemo(
-      () => ({
-        animationDuration: `${duration}s`,
-        animationTimingFunction: ease,
-        animationIterationCount: "infinite" as const,
-        animationDirection: reverse ? ("reverse" as const) : ("normal" as const),
-      }),
-      [duration, ease, reverse]
-    );
-
-    return (
-      <div
-        ref={ref}
-        className={cn(
-          "relative flex overflow-hidden max-w-fit marquee-container gap-[var(--marquee-gap)]",
-          pauseOnHover && "pause-on-hover",
-          className
-        )}
-        role="region"
-        aria-label="Marquee content"
-        aria-live="off"
-        {...props}
-      >
-        <div
-          aria-hidden="true"
-          className="absolute top-0 left-0 h-full w-12 bg-gradient-to-r from-fd-background to-transparent z-10 pointer-events-none"
-        />
-        <div
-          aria-hidden="true"
-          className="absolute top-0 right-0 h-full w-12 bg-gradient-to-l from-fd-background to-transparent z-10 pointer-events-none"
-        />
-
-        <ul
-          style={{
-            ...animationStyle,
-            animationName: "scroll",
-          }}
-          className="flex list-none shrink-0 justify-around gap-[var(--marquee-gap)] min-w-full marquee-list !pl-0 mr-4"
-        >
-          {items.map((item, i) => (
-            <li key={i} aria-label={`Marquee item ${i + 1}`}>
-              {item}
-            </li>
-          ))}
-        </ul>
-
-        <ul
-          aria-hidden="true"
-          className="flex list-none shrink-0 !pl-0 justify-around gap-[var(--marquee-gap)] min-w-full absolute top-0 left-0 marquee-list"
-          style={{
-            ...animationStyle,
-            animationName: "infinite-marquee-scroll",
-          }}
-        >
-          {items.map((item, i) => (
-            <li key={i} aria-label={`Marquee item ${i + 1}`}>
-              {item}
-            </li>
-          ))}
-        </ul>
-
-        <style jsx>{`
-          ${breakpointStyles}
-
-          .pause-on-hover:hover .marquee-list {
-            animation-play-state: paused;
-          }
-
-          @media (prefers-reduced-motion: reduce) {
-            .marquee-list {
-              animation-play-state: paused !important;
-            }
-          }
-
-          @keyframes scroll {
-            from {
-              transform: translateX(0);
-            }
-            to {
-              transform: translateX(calc(-100% - var(--marquee-gap)));
-            }
-          }
-
-          @keyframes infinite-marquee-scroll {
-            from {
-              transform: translateX(calc(100% + var(--marquee-gap)));
-            }
-            to {
-              transform: translateX(0);
-            }
-          }
-        `}</style>
-      </div>
-    );
+function MarkeeContent({ 
+  duration = 10, 
+  ease = "linear", 
+  reverse = false, 
+  pauseOnHover = false, 
+  className, 
+  ...props 
+}: MarkeeContentProps) {
+  const animationStyle = React.useMemo(
+    () => ({
+      animationDuration: `${duration}s`,
+      animationTimingFunction: ease,
+      animationDirection: reverse ? ("reverse" as const) : ("normal" as const),
+    }),
+    [duration, ease, reverse]
+  );
+  
+  const isInMarkee = React.useContext(MarkeeContext);
+  
+  if (!isInMarkee) {
+    console.error("MarkeeContent must be used inside a Markee component");
+    return null;
   }
-);
 
-MarqueeDemoComponent.displayName = "Marquee";
+  return <MarkeeContentContext.Provider value={true}>
+    <ul
+      data-slot="markee-content"
+      style={{ ...animationStyle }}
+      className={cn(
+        "flex shrink-0 justify-around min-w-full animate-markee-scroll [animation-iteration-count:infinite] motion-reduce:[animation-play-state:paused]", 
+        pauseOnHover && "[&:hover]:[animation-play-state:paused]",
+        className
+      )}
+      role="list"
+      aria-label="Marquee content list"
+      {...props}
+    />
+    
+    <ul
+      data-slot="markee-content-hidden"
+      style={{ ...animationStyle }}
+      className={cn(
+        "flex shrink-0 justify-around min-w-full absolute top-0 left-0 animate-markee-scroll-hidden [animation-iteration-count:infinite] motion-reduce:[animation-play-state:paused]", 
+        pauseOnHover && "[&:hover]:[animation-play-state:paused]", 
+        className
+      )}
+      {...props}
+      aria-hidden="true"
+    />
+  </MarkeeContentContext.Provider>;
+}
+MarkeeContent.displayName = "MarkeeContent";
 
-export { MarqueeDemoComponent };
-export type { MarqueeProps };
+function MarkeeItem({ ...props }: React.ComponentProps<"li">) {
+  return <li 
+  data-slot="markee-item"
+  role="listitem" 
+  aria-label="Marquee item"
+  {...props} />;
+}
+MarkeeItem.displayName = "MarkeeItem";
+
+export { Markee, MarkeeSpacer, MarkeeFade, MarkeeContent, MarkeeItem };
+export type { MarkeeContentProps };

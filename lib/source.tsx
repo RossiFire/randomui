@@ -17,8 +17,8 @@ export const source = loader({
             const fileData = this.storage.read(file);
             if(fileData && (fileData.data as unknown as { hot_item?: boolean }).hot_item) {
               node.name = <div className='flex gap-2 items-center'>
-                {node.name}
-                <FlameIcon className="size-4 fill-fd-error/50 stroke-fd-error" />
+                <span className='text-transparent bg-clip-text bg-gradient-to-r from-fd-primary to-fd-accent-foreground'>{node.name}</span>
+                <div className='size-2 bg-gradient-to-r from-fd-primary to-fd-accent-foreground rounded-full' />
               </div>
             }
           }

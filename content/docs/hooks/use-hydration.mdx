@@ -6,8 +6,9 @@ description: Utility hook to check if we're in client-side context
 <Alert variant="info">
 If you're using __React__, this hook is not required
 </Alert>
-Sometimes you want to do client stuff with DOM or calling client functions, but the component didn't mount yet so you would get an error. With this hook you can easily solve the issue. 
-## Why is it useful?
+This hook helps prevent hydration mismatches and client-side errors in server-rendered applications. When a component first renders on the server, client-only APIs like `window`, `document`, `localStorage`, or browser-specific APIs are not available. 
+
+The `useHydration` hook returns `false` during the initial server render and first client render, then returns `true` after the component has mounted on the client (via `useEffect`). This allows you to conditionally render client-only code only after hydration is complete, preventing errors like "window is not defined" or "localStorage is not defined". 
 
 ## Installation
 
