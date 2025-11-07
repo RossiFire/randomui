@@ -15,7 +15,7 @@ const schema = z.object({
   interests: z.array(z.string()).min(2, "You must select at least two options"),
 });
 
-const QuickFormSimpleDemo = () => {
+const QuickFormSimpleDemo: React.FC = () => {
 
   const { touched, errors, data, set, submit, isDirty, isValid, reset, toggleInArray} = useQuickForm(
     { email: '', username: '', isTosAccepted: false, interests: [] },
@@ -121,4 +121,4 @@ const QuickFormSimpleDemo = () => {
   );
 };
 
-export default QuickFormSimpleDemo;
+export { QuickFormSimpleDemo };

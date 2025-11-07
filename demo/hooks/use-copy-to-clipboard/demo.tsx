@@ -8,7 +8,7 @@ import { Alert } from '@/components/ui/alert'
 import { DemoBlock } from '@/components/demoBlock'
 import { cn } from '@/lib/utils'
 
-export default function CopyToClipboardDemo() {
+const CopyToClipboardDemo: React.FC = () => {
 
   const {
     copy,
@@ -50,3 +50,5 @@ const handleCopy = () => {
   </DemoBlock>
   )
 }
+
+export { CopyToClipboardDemo };

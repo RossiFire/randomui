@@ -8,11 +8,7 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 
 
-interface MagnetDemoProps {
-    
-}
- 
-const MarqueeDemo: React.FC<MagnetDemoProps> = () => {
+const MarqueeDemo: React.FC = () => {
 
 
     const [showFades, setShowFades] = useState(true);

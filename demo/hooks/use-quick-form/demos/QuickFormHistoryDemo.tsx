@@ -13,7 +13,7 @@ const schema = z.object({
   description: z.string().min(6, "Min 6 characters"),
 });
 
-const QuickFormHistoryDemo = () => {
+const QuickFormHistoryDemo: React.FC = () => {
   const { data, set, submit, errors, touched, isDirty, isValid, reset, setData } = useQuickForm({ email: '', fullName: '', description: '' }, schema);
   const { undo, redo, canUndo, canRedo, clearHistory, historySize, redoSize, jumpTo } = useQuickFormHistory(data, setData, { maxSize: 20, debounceMs: 500 });
 
@@ -83,4 +83,4 @@ const QuickFormHistoryDemo = () => {
   );
 };
 
-export default QuickFormHistoryDemo;
+export { QuickFormHistoryDemo };

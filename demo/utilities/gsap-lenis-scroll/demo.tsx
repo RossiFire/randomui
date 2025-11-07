@@ -2,15 +2,11 @@
 import { DemoBlock } from "@/components/demoBlock";
 import { Button } from "@/components/ui/button";
 import LenisProvider from "@/providers/LenisProvider";
-import { useLenis } from "lenis/react";
 import { useState } from "react";
 import { LenisOptions } from "lenis";
 
-interface GsapLenisScrollDemoProps {
-    
-}
  
-const GsapLenisScrollDemo: React.FC<GsapLenisScrollDemoProps> = () => {
+const GsapLenisScrollDemo: React.FC = () => {
 
     const [lenisOptions, setLenisOptions] = useState<LenisOptions>({
         wheelMultiplier: 1
@@ -40,4 +36,4 @@ const GsapLenisScrollDemo: React.FC<GsapLenisScrollDemoProps> = () => {
      );
 }
  
-export default GsapLenisScrollDemo;
+export { GsapLenisScrollDemo };

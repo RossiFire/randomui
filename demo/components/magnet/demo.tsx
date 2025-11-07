@@ -6,11 +6,7 @@ import { StarIcon } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
-interface MagnetDemoProps {
-    
-}
- 
-const MagnetDemo: React.FC<MagnetDemoProps> = () => {
+const MagnetDemo: React.FC = () => {
 
     const [isActive, setIsActive] = useState(false);
 
@@ -40,4 +36,4 @@ const MagnetDemo: React.FC<MagnetDemoProps> = () => {
      );
 }
  
-export default MagnetDemo;
+export { MagnetDemo };

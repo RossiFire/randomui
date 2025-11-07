@@ -8,7 +8,7 @@ import { CheckCircle2Icon, CheckIcon, MoonIcon, SunIcon } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 
-function WindowMenuDemo() {
+const WindowMenuDemo: React.FC = () => {
 
     const [fullScreen, setFullScreen] = useState(false);
 
@@ -79,5 +79,4 @@ const ThemeSwitcher = () => {
     );
   };
   
-
-export default WindowMenuDemo;
+export { WindowMenuDemo };

@@ -1,11 +1,7 @@
 import { DemoBlock } from "@/components/demoBlock";
 import LenisProvider from "@/providers/LenisProvider";
 
-interface StackedCardsDemoProps {
-    
-}
- 
-const StackedCardsDemo: React.FC<StackedCardsDemoProps> = () => {
+const StackedCardsDemo: React.FC = () => {
     return ( 
         <LenisProvider>
             <DemoBlock className="m-0" disableOverflowHidden containerClassName="flex flex-col gap-12 py-20">
@@ -28,4 +24,4 @@ const StackedCardsDemo: React.FC<StackedCardsDemoProps> = () => {
      );
 }
  
-export default StackedCardsDemo;
+export { StackedCardsDemo };

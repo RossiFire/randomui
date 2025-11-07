@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 /**
  * Demo component showcasing privacy-compliant analytics functionality
  */
-export default function PrivacyCompliantAnalyticsDemo() {
+const PrivacyCompliantAnalyticsDemo: React.FC = () => {
   const [selectedCategories, setSelectedCategories] = useState<ConsentCategory[]>(["analytics"]);
   const [eventName, setEventName] = useState("page_view");
   const [eventProperties, setEventProperties] = useState('{"page": "/demo", "source": "direct"}');
@@ -388,3 +388,5 @@ export default function PrivacyCompliantAnalyticsDemo() {
     </div>
   );
 }
+
+export { PrivacyCompliantAnalyticsDemo };

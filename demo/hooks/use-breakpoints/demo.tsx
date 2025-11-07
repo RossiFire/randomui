@@ -3,9 +3,7 @@ import { DemoBlock } from "@/components/demoBlock";
 import { useBreakPoints } from "./use-breakpoints";
 import { cn } from "@/lib/utils";
 
-interface UseBreakpointsDemoProps {}
-
-const UseBreakpointsDemo: React.FC<UseBreakpointsDemoProps> = () => {
+const UseBreakpointsDemo: React.FC = () => {
   
     const { isMobile, isTablet, isDesktop } = useBreakPoints();
 
@@ -40,4 +38,4 @@ const UseBreakpointsDemo: React.FC<UseBreakpointsDemoProps> = () => {
   );
 };
 
-export default UseBreakpointsDemo;
+export { UseBreakpointsDemo };

@@ -5,11 +5,7 @@ import CClock from "./cclock";
 import ClockCounter from "./cclock-counter";
 import { Button } from "@/components/ui/button";
 
-interface CClockDemoProps {
-    
-}
- 
-export const CClockDemo: React.FC<CClockDemoProps> = () => {
+const CClockDemo: React.FC = () => {
     return ( 
         <DemoBlock containerClassName="h-[400px]" className="m-0">
             <CClock className="scale-50" />
@@ -17,7 +13,7 @@ export const CClockDemo: React.FC<CClockDemoProps> = () => {
     );
 }
  
-export const CClockCounterDemo: React.FC<CClockDemoProps> = () => {
+const CClockCounterDemo: React.FC = () => {
 
     const [value, setValue] = useState(1);
     return ( 
@@ -34,3 +30,5 @@ export const CClockCounterDemo: React.FC<CClockDemoProps> = () => {
         </DemoBlock>
     );
 }
+
+export { CClockDemo, CClockCounterDemo };

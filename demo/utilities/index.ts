@@ -1,0 +1,1 @@
+export { GsapLenisScrollDemo } from "./gsap-lenis-scroll/demo";

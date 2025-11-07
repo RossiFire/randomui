@@ -12,7 +12,7 @@ const schema = z.object({
   interestedIn: z.array(z.string()).min(2, "You must select at least two options"),
 });
 
-const QuickFormAnalyticsDemo = () => {
+const QuickFormAnalyticsDemo: React.FC = () => {
   const form = useQuickForm({ email: '', interestedIn: [] }, schema);
   
   const analytics = useQuickFormAnalytics(form.ref);
@@ -103,4 +103,4 @@ const QuickFormAnalyticsDemo = () => {
   );
 };
 
-export default QuickFormAnalyticsDemo;
+export { QuickFormAnalyticsDemo };

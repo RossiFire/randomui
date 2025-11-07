@@ -2,11 +2,7 @@
 import { DemoBlock } from "@/components/demoBlock";
 import { useDevice } from "./use-detect-device";
 
-interface UseDetectDeviceDemoProps {
-    
-}
- 
-const UseDetectDeviceDemo: React.FC<UseDetectDeviceDemoProps> = () => {
+const UseDetectDeviceDemo: React.FC = () => {
 
     const device = useDevice();
     return ( 
@@ -26,4 +22,4 @@ const UseDetectDeviceDemo: React.FC<UseDetectDeviceDemoProps> = () => {
      );
 }
  
-export default UseDetectDeviceDemo;
+export { UseDetectDeviceDemo };

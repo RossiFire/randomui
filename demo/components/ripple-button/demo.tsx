@@ -5,11 +5,7 @@ import RippleButton from "./RippleButton";
 import RippleButtonDesignSystem from "./RippleButtonDesignSystem";
 
 
-interface RippleButtonDemoProps {
-    
-}
- 
-export const RippleButtonDemo: React.FC<RippleButtonDemoProps> = () => {
+const RippleButtonDemo: React.FC = () => {
 
 
     return ( 
@@ -24,7 +20,7 @@ export const RippleButtonDemo: React.FC<RippleButtonDemoProps> = () => {
 }
  
 
-export const RippleButtonDesignSystemDemo: React.FC<RippleButtonDemoProps> = () => {
+const RippleButtonDesignSystemDemo: React.FC = () => {
     return (
         <DemoBlock className="m-0">
             <div className="min-h-52 flex items-center justify-center">
@@ -35,3 +31,5 @@ export const RippleButtonDesignSystemDemo: React.FC<RippleButtonDemoProps> = () 
         </DemoBlock>
     )
 }
+
+export { RippleButtonDemo, RippleButtonDesignSystemDemo };

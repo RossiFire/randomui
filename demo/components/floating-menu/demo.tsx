@@ -7,11 +7,7 @@ import { useTheme } from "next-themes";
 import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 
-interface FloatingMenuDemoProps {
-    
-}
- 
-const FloatingMenuDemo: React.FC<FloatingMenuDemoProps> = () => {
+const FloatingMenuDemo: React.FC = () => {
 
 
     const theme = useTheme();
@@ -84,7 +80,7 @@ const FloatingMenuDemo: React.FC<FloatingMenuDemoProps> = () => {
      );
 }
 
-const ThemeSwitcher = () => {
+const ThemeSwitcher: React.FC = () => {
 
     const { theme, setTheme } = useTheme();
   
@@ -104,4 +100,4 @@ const ThemeSwitcher = () => {
 
 
 
-export default FloatingMenuDemo;
+export { FloatingMenuDemo };

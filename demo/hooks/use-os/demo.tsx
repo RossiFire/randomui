@@ -2,11 +2,7 @@
 import { DemoBlock } from "@/components/demoBlock";
 import { useOs } from "@/hooks/use-os";
 
-interface UseOsDemoProps {
-    
-}
- 
-const UseOsDemo: React.FC<UseOsDemoProps> = () => {
+const UseOsDemo: React.FC = () => {
 
     const os = useOs();
     return ( 
@@ -26,4 +22,4 @@ const UseOsDemo: React.FC<UseOsDemoProps> = () => {
      );
 }
  
-export default UseOsDemo;
+export { UseOsDemo };

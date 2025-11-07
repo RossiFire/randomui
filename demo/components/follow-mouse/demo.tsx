@@ -6,11 +6,7 @@ import { useState } from "react";
 import { Volume2Icon, VolumeOffIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-interface FollowMouseDemoProps {
-    
-}
- 
-const FollowMouseDemo: React.FC<FollowMouseDemoProps> = () => {
+const FollowMouseDemo: React.FC = () => {
 
     const [isVolumeOn, setIsVolumeOn] = useState(false);
 
@@ -121,4 +117,4 @@ const CenterItemContent = ({ isVolumeOn }: { isVolumeOn: boolean }) => {
   );
 };
 
-export default FollowMouseDemo;
+export { FollowMouseDemo };

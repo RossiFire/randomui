@@ -4,11 +4,7 @@ import { Button } from "@/components/ui/button";
 import useNoisyBackgroundStore from "@/store/noisy-background-store";
 
 
-interface NoisyBackgroundDemoProps {
-    
-}
- 
-const NoisyBackgroundDemo: React.FC<NoisyBackgroundDemoProps> = () => {
+const NoisyBackgroundDemo: React.FC = () => {
 
     const { toggleBackground, toggleAnimation } = useNoisyBackgroundStore();
 
@@ -30,4 +26,4 @@ const NoisyBackgroundDemo: React.FC<NoisyBackgroundDemoProps> = () => {
     );
 }
  
-export default NoisyBackgroundDemo;
+export { NoisyBackgroundDemo };

@@ -4,9 +4,7 @@ import useScreenSize from "./use-screen-size";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
-interface UseScreenSizeDemoProps {}
-
-const UseScreenSizeDemo: React.FC<UseScreenSizeDemoProps> = () => {
+const UseScreenSizeDemo: React.FC = () => {
   
   const [transformTo, setTransformTo] = useState<"%" | "px">("px");
   const screenSize = useScreenSize({ transformTo: transformTo });
@@ -42,4 +40,4 @@ const UseScreenSizeDemo: React.FC<UseScreenSizeDemoProps> = () => {
   );
 };
 
-export default UseScreenSizeDemo;
+export { UseScreenSizeDemo };

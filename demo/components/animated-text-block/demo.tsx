@@ -13,11 +13,7 @@ import { useGSAP } from "@gsap/react";
 const prata = Prata({ weight: '400', subsets: ['latin'], variable: '--font-prata' })
 
 
-interface AnimatedTextBlockDemoProps {
-    
-}
- 
-const AnimatedTextBlockDemo: React.FC<AnimatedTextBlockDemoProps> = () => {
+const AnimatedTextBlockDemo: React.FC = () => {
   const isMounted = useHydration();
 
   const [animating, setAnimating] = useState(false);
@@ -77,7 +73,7 @@ const AnimatedTextBlockDemo: React.FC<AnimatedTextBlockDemoProps> = () => {
 
 
 
-const AnimatedTextBlockAlternativeDemo: React.FC<AnimatedTextBlockDemoProps> = () => {
+const AnimatedTextBlockAlternativeDemo: React.FC = () => {
     const isMounted = useHydration();
   
     const [animating, setAnimating] = useState(false);
@@ -139,7 +135,7 @@ const AnimatedTextBlockAlternativeDemo: React.FC<AnimatedTextBlockDemoProps> = (
 
 
 
-const AnimatedTextBlockWrongDemo: React.FC<AnimatedTextBlockDemoProps> = () => {
+const AnimatedTextBlockWrongDemo: React.FC = () => {
     const isMounted = useHydration();
   
     const [animating, setAnimating] = useState(false);
@@ -198,7 +194,7 @@ const AnimatedTextBlockWrongDemo: React.FC<AnimatedTextBlockDemoProps> = () => {
   }
 
 
-const AnimatedTextBlockScrollingDemo: React.FC<AnimatedTextBlockDemoProps> = () => {
+const AnimatedTextBlockScrollingDemo: React.FC = () => {
     
   
     useGSAP(()=>{
