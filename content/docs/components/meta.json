@@ -10,6 +10,7 @@
         "stacked-cards",
         "floating-menu",
         "ripple-button",
-        "cclock"
+        "cclock",
+        "mouse-follow"
     ]
 }

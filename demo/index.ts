@@ -18,6 +18,7 @@ import MarqueeDemo from "./components/marquee/demo";
 import UseOsDemo from "./hooks/use-os/demo";
 import CopyToClipboardDemo from "./hooks/use-copy-to-clipboard/demo";
 import { AnimatedTextBlockAlternativeDemo, AnimatedTextBlockDemo, AnimatedTextBlockScrollingDemo, AnimatedTextBlockWrongDemo } from "./components/animated-text-block/demo";
+import FollowMouseDemo from "./components/follow-mouse/demo";
 
 export { 
     UseScreenSizeDemo, 
@@ -46,4 +47,5 @@ export {
     AnimatedTextBlockDemo,
     AnimatedTextBlockWrongDemo,
     AnimatedTextBlockScrollingDemo, 
+    FollowMouseDemo,
 };
