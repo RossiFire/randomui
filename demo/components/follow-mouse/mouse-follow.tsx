@@ -84,7 +84,7 @@ function MouseFollowItem({
         data-slot="mouse-follow-item"
         aria-hidden="true"
         className={cn(
-          "pointer-events-none fixed",
+          "pointer-events-none fixed z-[999]",
           isVisible
             ? "scale-100 transition-transform duration-150"
             : "scale-0 duration-0",

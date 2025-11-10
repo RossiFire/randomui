@@ -1,6 +1,7 @@
 ---
 title: Mouse Follow
 description: A performant and customisable follow mouse component built with React compound components
+hot_item: true
 ---
 
 <PageBadge badges={['tailwind', 'react', 'radix_ui']} />
@@ -124,7 +125,7 @@ function MouseFollowItem({
         data-slot="mouse-follow-item"
         aria-hidden="true"
         className={cn(
-          "pointer-events-none fixed",
+          "pointer-events-none fixed z-[999]",
           isVisible
             ? "scale-100 transition-transform duration-150"
             : "scale-0 duration-0",

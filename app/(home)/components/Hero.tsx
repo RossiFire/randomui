@@ -81,10 +81,6 @@ const Hero: React.FC = () => {
     return (
         <div className="flex flex-col items-center justify-center gap-8 z-[2] px-4 md:px-0">
             <div className="absolute inset-0 z-[99] radial-overlay touch-none pointer-events-none" style={{ background: `radial-gradient(circle at center, transparent 0%, var(--color-fd-background)) 0%` }} />
-
-                <GradientBorderButton className="hover:scale-105 transition-transform duration-300 mb-12">
-                    <Link href="/converter">Try the new AI code converter</Link>
-                </GradientBorderButton>
             <h1 className={cn("text-3xl md:text-4xl lg:text-6xl text-fd-foreground hero-text", majorFont)}>Random UI</h1>
             <h2 className={cn("text-base md:text-xl lg:text-2xl text-fd-muted-foreground px-2 md:px-0", interFont)}>A collection of reusable components, hooks, utilities and more</h2>
             <Markee className="w-full md:w-1/2 lg:w-1/3">
