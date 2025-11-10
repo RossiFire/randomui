@@ -12,5 +12,5 @@ export { FloatingMenuDemo } from "./floating-menu/demo";
 export { RippleButtonDemo, RippleButtonDesignSystemDemo } from "./ripple-button/demo";
 export { StackedCardsDemo } from "./stacked-cards/demo";
 export { CClockDemo, CClockCounterDemo } from "./cclock/demo";
-export { default as MarqueeDemo } from "./marquee/demo";
+export { MarqueeDemo, MarqueeDemoWithGSAP, MarqueeDemoWithFramerMotion } from "./marquee/demo";
 export { WindowMenuDemo } from "./window-menu/demo";

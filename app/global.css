@@ -8,7 +8,6 @@
 
 @theme {
     --animate-markee-scroll: markee-scroll;
-    --animate-markee-scroll-hidden: markee-scroll-hidden;
 
     @keyframes markee-scroll {
         from {
@@ -16,15 +15,6 @@
         }
         to {
           transform: translateX(-100%);
-        }
-      }
-
-      @keyframes markee-scroll-hidden {
-        from {
-          transform: translateX(100%);
-        }
-        to {
-          transform: translateX(0);
         }
       }
 }

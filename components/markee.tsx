@@ -5,23 +5,20 @@ import { cn } from "@/lib/utils";
 const MarkeeContext = React.createContext<boolean>(false);
 const MarkeeContentContext = React.createContext<boolean>(false);
 
-
-function Markee({ children, className,...props}: React.ComponentProps<"div">) {
+function Markee({ className, ...props}: React.ComponentProps<"div">) {
   return (
     <MarkeeContext.Provider value={true}>
       <div
         data-slot="markee"
         className={cn(
-          "relative flex overflow-hidden max-w-fit markee-container",
+          "relative flex overflow-hidden max-w-fit",
           className
         )}
         role="region"
         aria-label="Marquee content"
         aria-live="polite"
         {...props}
-      >
-      {children}
-      </div>
+      />
     </MarkeeContext.Provider>
   );
 }
@@ -71,17 +68,18 @@ MarkeeSpacer.displayName = "MarkeeSpacer";
 
 interface MarkeeContentProps extends React.ComponentProps<"ul"> {
   /**
-   * Whether to reverse the animation
-   * @default false
+   * Direction of the animation.
+   * @default "left" (left to right)
    */
-  reverse?: boolean;
+  direction?: "left" | "right";
   /**
-   * Duration in seconds
+   * Duration in seconds of the animation.
+   * Higher values result in slower animation and vice versa.
    * @default 10
    */
   duration?: number;
   /**
-   * Animation timing function
+   * Animation easing
    * @default "linear"
    */
   ease?: "linear" | "ease" | "ease-in" | "ease-out" | "ease-in-out";
@@ -90,12 +88,18 @@ interface MarkeeContentProps extends React.ComponentProps<"ul"> {
    * @default false
    */
   pauseOnHover?: boolean;
+  /**
+   * Whether the markee is paused or not
+   * @default false
+   */
+  paused?: boolean;
 }
 function MarkeeContent({ 
   duration = 10, 
   ease = "linear", 
-  reverse = false, 
+  direction = "left", 
   pauseOnHover = false, 
+  paused = false,
   className, 
   ...props 
 }: MarkeeContentProps) {
@@ -103,9 +107,9 @@ function MarkeeContent({
     () => ({
       animationDuration: `${duration}s`,
       animationTimingFunction: ease,
-      animationDirection: reverse ? ("reverse" as const) : ("normal" as const),
+      animationDirection: direction === "left" ? ("normal" as const) : ("reverse" as const),
     }),
-    [duration, ease, reverse]
+    [duration, ease, direction]
   );
   
   const isInMarkee = React.useContext(MarkeeContext);
@@ -116,30 +120,31 @@ function MarkeeContent({
   }
 
   return <MarkeeContentContext.Provider value={true}>
-    <ul
-      data-slot="markee-content"
+    <div 
+      data-slot="markee-content-wrapper"
       style={{ ...animationStyle }}
       className={cn(
-        "flex shrink-0 justify-around min-w-full animate-markee-scroll [animation-iteration-count:infinite] motion-reduce:[animation-play-state:paused]", 
-        pauseOnHover && "[&:hover]:[animation-play-state:paused] peer [&:has(+[data-slot='markee-content-hidden']:hover)]:[animation-play-state:paused]",
+        "relative flex shrink-0 animate-markee-scroll [animation-iteration-count:infinite] motion-reduce:[animation-play-state:paused", 
+        pauseOnHover && "hover:[animation-play-state:paused]",
+        paused && "[animation-play-state:paused]",
         className
       )}
-      role="list"
-      aria-label="Marquee content list"
-      {...props}
-    />
-    
-    <ul
-      data-slot="markee-content-hidden"
-      style={{ ...animationStyle }}
-      className={cn(
-        "flex shrink-0 justify-around min-w-full absolute top-0 left-0 animate-markee-scroll-hidden [animation-iteration-count:infinite] motion-reduce:[animation-play-state:paused]", 
-        pauseOnHover && "[&:hover]:[animation-play-state:paused] peer-hover:[animation-play-state:paused]", 
-        className
-      )}
-      {...props}
-      aria-hidden="true"
-    />
+    >
+      <ul
+        data-slot="markee-content"
+        className="flex shrink-0 justify-around min-w-full pl-0!"
+        role="list"
+        aria-label="Marquee content list"
+        {...props}
+      />
+      
+      <ul
+        data-slot="markee-content-hidden"
+        className="flex shrink-0 justify-around min-w-full absolute top-0 left-full pl-0!"
+        {...props}
+        aria-hidden="true"
+      />
+    </div>
   </MarkeeContentContext.Provider>;
 }
 MarkeeContent.displayName = "MarkeeContent";

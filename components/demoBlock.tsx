@@ -56,7 +56,8 @@ export function DemoBlock({
   showBorder = true,
   background = 'dots',
   disableOverflowHidden = false,
-}: DemoBlockProps) {
+  ref,
+}: DemoBlockProps & { ref?: React.RefObject<HTMLDivElement | null>}) {
   const backgroundClasses = {
     default: 'bg-fd-background',
     dots: 'bg-fd-background bg-[radial-gradient(circle_at_1px_1px,rgb(163_163_163_/_0.15)_1px,transparent_0)] bg-[size:20px_20px]',
@@ -85,6 +86,7 @@ export function DemoBlock({
         !disableOverflowHidden && 'overflow-hidden',
         className,
       )}
+      ref={ref}
     >
       <div
         className={cn(

@@ -8,6 +8,10 @@ hot_item: true
 
 A performant, accessible marquee component built with React compound components. Features customizable animation speed, easing options, pause on hover, and optional fade effects. Fully responsive, width-adaptive, and WCAG compliant.
 
+<Alert variant="success">
+  It also supports <strong>GSAP</strong> and <strong>Framer Motion</strong> integration out of the box! See the [dedicated section](#animation-integration) below.
+</Alert>
+
 ## Demo
 <MarqueeDemo />
 
@@ -23,23 +27,20 @@ import { cn } from "@/lib/utils";
 const MarkeeContext = React.createContext<boolean>(false);
 const MarkeeContentContext = React.createContext<boolean>(false);
 
-
-function Markee({ children, className,...props}: React.ComponentProps<"div">) {
+function Markee({ className, ...props}: React.ComponentProps<"div">) {
   return (
     <MarkeeContext.Provider value={true}>
       <div
         data-slot="markee"
         className={cn(
-          "relative flex overflow-hidden max-w-fit markee-container",
+          "relative flex overflow-hidden max-w-fit",
           className
         )}
         role="region"
         aria-label="Marquee content"
         aria-live="polite"
         {...props}
-      >
-      {children}
-      </div>
+      />
     </MarkeeContext.Provider>
   );
 }
@@ -89,17 +90,18 @@ MarkeeSpacer.displayName = "MarkeeSpacer";
 
 interface MarkeeContentProps extends React.ComponentProps<"ul"> {
   /**
-   * Whether to reverse the animation
-   * @default false
+   * Direction of the animation.
+   * @default "left" (left to right)
    */
-  reverse?: boolean;
+  direction?: "left" | "right";
   /**
-   * Duration in seconds
+   * Duration in seconds of the animation.
+   * Higher values result in slower animation and vice versa.
    * @default 10
    */
   duration?: number;
   /**
-   * Animation timing function
+   * Animation easing
    * @default "linear"
    */
   ease?: "linear" | "ease" | "ease-in" | "ease-out" | "ease-in-out";
@@ -108,12 +110,18 @@ interface MarkeeContentProps extends React.ComponentProps<"ul"> {
    * @default false
    */
   pauseOnHover?: boolean;
+  /**
+   * Whether the markee is paused or not
+   * @default false
+   */
+  paused?: boolean;
 }
 function MarkeeContent({ 
   duration = 10, 
   ease = "linear", 
-  reverse = false, 
+  direction = "left", 
   pauseOnHover = false, 
+  paused = false,
   className, 
   ...props 
 }: MarkeeContentProps) {
@@ -121,9 +129,9 @@ function MarkeeContent({
     () => ({
       animationDuration: `${duration}s`,
       animationTimingFunction: ease,
-      animationDirection: reverse ? ("reverse" as const) : ("normal" as const),
+      animationDirection: direction === "left" ? ("normal" as const) : ("reverse" as const),
     }),
-    [duration, ease, reverse]
+    [duration, ease, direction]
   );
   
   const isInMarkee = React.useContext(MarkeeContext);
@@ -134,30 +142,31 @@ function MarkeeContent({
   }
 
   return <MarkeeContentContext.Provider value={true}>
-    <ul
-      data-slot="markee-content"
+    <div 
+      data-slot="markee-content-wrapper"
       style={{ ...animationStyle }}
       className={cn(
-        "flex shrink-0 justify-around min-w-full animate-markee-scroll [animation-iteration-count:infinite] motion-reduce:[animation-play-state:paused]", 
-        pauseOnHover && "[&:hover]:[animation-play-state:paused] peer [&:has(+[data-slot='markee-content-hidden']:hover)]:[animation-play-state:paused]",
+        "relative flex shrink-0 animate-markee-scroll [animation-iteration-count:infinite] motion-reduce:[animation-play-state:paused", 
+        pauseOnHover && "hover:[animation-play-state:paused]",
+        paused && "[animation-play-state:paused]",
         className
       )}
-      role="list"
-      aria-label="Marquee content list"
-      {...props}
-    />
-    
-    <ul
-      data-slot="markee-content-hidden"
-      style={{ ...animationStyle }}
-      className={cn(
-        "flex shrink-0 justify-around min-w-full absolute top-0 left-0 animate-markee-scroll-hidden [animation-iteration-count:infinite] motion-reduce:[animation-play-state:paused]", 
-        pauseOnHover && "[&:hover]:[animation-play-state:paused] peer-hover:[animation-play-state:paused]", 
-        className
-      )}
-      {...props}
-      aria-hidden="true"
-    />
+    >
+      <ul
+        data-slot="markee-content"
+        className="flex shrink-0 justify-around min-w-full"
+        role="list"
+        aria-label="Marquee content list"
+        {...props}
+      />
+      
+      <ul
+        data-slot="markee-content-hidden"
+        className="flex shrink-0 justify-around min-w-full absolute top-0 left-full"
+        {...props}
+        aria-hidden="true"
+      />
+    </div>
   </MarkeeContentContext.Provider>;
 }
 MarkeeContent.displayName = "MarkeeContent";
@@ -180,7 +189,6 @@ Add the following CSS to your global stylesheet:
 ```css title="app/global.css"
 @theme {
   --animate-markee-scroll: markee-scroll;
-  --animate-markee-scroll-hidden: markee-scroll-hidden;
 
   @keyframes markee-scroll {
     from {
@@ -188,15 +196,6 @@ Add the following CSS to your global stylesheet:
     }
     to {
       transform: translateX(-100%);
-    }
-  }
-
-  @keyframes markee-scroll-hidden {
-    from {
-      transform: translateX(100%);
-    }
-    to {
-      transform: translateX(0);
     }
   }
 }
@@ -221,23 +220,9 @@ import {
   <MarkeeFade position="left" />
   <MarkeeContent>
     <MarkeeItem>Item 1</MarkeeItem>
+    <MarkeeSpacer />
     <MarkeeItem>Item 2</MarkeeItem>
-    <MarkeeItem>Item 3</MarkeeItem>
-  </MarkeeContent>
-  <MarkeeFade position="right" />
-</Markee>
-```
-
-### With Spacers
-
-```tsx
-<Markee>
-  <MarkeeFade position="left" />
-  <MarkeeContent duration={20}>
-    <MarkeeItem>Item 1</MarkeeItem>
-    <MarkeeSpacer className="w-12" />
-    <MarkeeItem>Item 2</MarkeeItem>
-    <MarkeeSpacer className="w-12" />
+    <MarkeeSpacer />
     <MarkeeItem>Item 3</MarkeeItem>
   </MarkeeContent>
   <MarkeeFade position="right" />
@@ -263,63 +248,163 @@ const items = ["Item 1", "Item 2", "Item 3"];
 </Markee>
 ```
 
-### Custom Width
+### Custom Markee Width
 
 ```tsx
 <Markee className="w-full md:w-1/2 lg:w-1/3">
-  <MarkeeFade direction="left" />
+  <MarkeeFade position="left" />
   <MarkeeContent>
     <MarkeeItem>Item 1</MarkeeItem>
+    <MarkeeSpacer />
     <MarkeeItem>Item 2</MarkeeItem>
+    <MarkeeSpacer />
+    <MarkeeItem>Item 3</MarkeeItem>
   </MarkeeContent>
-  <MarkeeFade direction="right" />
+  <MarkeeFade position="right" />
 </Markee>
 ```
 
-### Custom Fade Width
+### Custom Fades
 
 ```tsx
 <Markee>
-  <MarkeeFade position="left" className="w-16" />
+  <MarkeeFade position="left" className="w-16 from-lime to-transparent" />
   <MarkeeContent>
-    <MarkeeItem>Item 1</MarkeeItem>
-    <MarkeeItem>Item 2</MarkeeItem>
+    ...
   </MarkeeContent>
-  <MarkeeFade position="right" className="w-16" />
+  <MarkeeFade position="right" className="w-16 from-lime to-transparent" />
 </Markee>
 ```
 
-### Without Fades
+### Custom Spacers
 
 ```tsx
 <Markee>
-  <MarkeeContent reverse={true} duration={15} pauseOnHover={true}>
+  <MarkeeContent>
     <MarkeeItem>Item 1</MarkeeItem>
-    <MarkeeSpacer className="w-8" />
+    <MarkeeSpacer className="w-4 md:w-12" /> {/* Custom width */} 
     <MarkeeItem>Item 2</MarkeeItem>
-    <MarkeeSpacer className="w-8" />
+    <MarkeeSpacer> {/* Or with custom content inside */}
+      <MyDivider />
+    </MarkeeSpacer>
     <MarkeeItem>Item 3</MarkeeItem>
   </MarkeeContent>
 </Markee>
 ```
 
-### Animation Options
+## Animation Integration
 
-```tsx
-<Markee>
-  <MarkeeFade position="left" />
-  <MarkeeContent 
-    reverse={true} 
-    duration={20} 
-    pauseOnHover={true}
-    ease="ease-in-out"
-  >
-    <MarkeeItem>Item 1</MarkeeItem>
-    <MarkeeItem>Item 2</MarkeeItem>
-  </MarkeeContent>
-  <MarkeeFade position="right" />
-</Markee>
-```
+### Gsap
+
+You can integrate Gsap out of the box, without editing directly the component, in the following way:
+
+<Tabs items={['code', 'demo']}>
+  <Tab className='p-0' value="demo">
+    <MarqueeDemoWithGSAP />
+  </Tab>
+  <Tab value="code">
+    ```tsx
+    import { useGSAP } from "@gsap/react";
+    import gsap from "gsap";
+    import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+    gsap.registerPlugin(ScrollTrigger);
+    ```
+    ```tsx
+    useGSAP(()=>{
+
+      gsap.set(".mymarkee-content-right", { translateX: "-100%" });
+
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          // Your scroll trigger configuration
+          start: 'top top',
+          end: 'bottom top',
+          scrub: true,
+        },
+      });
+
+      tl.to(".mymarkee-content", {
+        translateX: "-10%",
+        ease: 'power2.inOut',
+      });
+
+      tl.to(".mymarkee-content-right", {
+        translateX: "-90%",
+        ease: 'power2.inOut',
+      },'<');
+
+    });
+    ```
+    ```tsx
+    return (
+      <Markee>
+        <MarkeeFade position="left" />
+        <MarkeeContent className="mymarkee-content" paused>
+          ...
+        </MarkeeContent>
+        <MarkeeFade position="right" />
+      </Markee>
+
+      <Markee>
+        <MarkeeFade position="left" />
+        <MarkeeContent className="mymarkee-content-right" paused direction="right">
+          ...
+        </MarkeeContent>
+        <MarkeeFade position="right" />
+      </Markee>
+    );
+    ```
+  </Tab>
+</Tabs>
+
+### Framer Motion
+
+Also Framer motion integration is supported out of the box, without editing directly the component, in the following way:
+
+<Tabs items={['code', 'demo']}>
+  <Tab className='p-0' value="demo">
+    <MarqueeDemoWithFramerMotion />
+  </Tab>
+  <Tab value="code">
+    ```tsx
+    import { motion, useScroll, useTransform } from "framer-motion";
+    ```
+    ```tsx
+   const { scrollYProgress } = useScroll({ offset: ["start center", "end end"] });
+   const translateX = useTransform(scrollYProgress, [0, 1], ["-50%", "0%"]);
+    ```
+    ```tsx
+    return (
+      <Markee>
+        <MarkeeFade position="left" />
+        <MarkeeContent paused>
+          {/* Wrap all content inside a motion.div, Set flex display to keep the layout! */}
+          <motion.div style={{ translateX }} className="flex">
+            {badges.map((badge, index) => (
+              <Fragment key={index}>
+                <MarkeeItem>
+                  {badge}
+                </MarkeeItem>
+                <MarkeeSpacer className="w-4" />
+              </Fragment>
+            ))}
+          </motion.div>
+        </MarkeeContent>
+        <MarkeeFade position="right" />
+      </Markee>
+    );
+    ```
+  </Tab>
+</Tabs>
+
+<Alert variant="warning" className="items-start justify-start p-4">
+  <div className="flex flex-col gap-2">
+  <p className="font-bold my-0!">Limitations</p>
+  <span>Due to the nature of the marquee animation, I recommend you to <b>not</b> scroll for the entire marquee width, but rather a smaller portion of it,
+  otherwise it will results in having an empty space at the start/end of the marquee.</span>
+  </div>
+</Alert>
 
 ## API Reference
 
@@ -338,9 +423,10 @@ Component that renders the scrolling content. Must be used inside `Markee`. Acce
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
-| `reverse` | `boolean` | `false` | Whether to reverse the animation direction |
+| `direction` | `"left" \| "right"` | `"left"` | Direction of the marquee |
 | `duration` | `number` | `10` | Animation duration in seconds |
 | `pauseOnHover` | `boolean` | `false` | Whether to pause animation on hover |
+| `paused` | `boolean` | `false` | Whether to pause the animation |
 | `ease` | `"linear" \| "ease" \| "ease-in" \| "ease-out" \| "ease-in-out"` | `"linear"` | CSS animation timing function |
 | `className` | `string` | - | Additional CSS classes |
 | `children` | `ReactNode` | - | Content items (`MarkeeItem` and `MarkeeSpacer`) |
@@ -356,7 +442,7 @@ Component for individual items in the marquee. Must be used inside `MarkeeConten
 
 ### MarkeeSpacer
 
-Component for adding spacing between items. Must be used inside `MarkeeContent`.
+Component for adding spacing or dividers between items. Must be used inside `MarkeeContent`.
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
@@ -373,4 +459,4 @@ Component for adding fade effects on the edges. Must be used inside `Markee` as 
 
 ## Accessibility
 
-The component follows WCAG 2.1 AA accessibility standards and ARIA best practices. It includes proper `role` and `aria-label` attributes, and `aria-live="polite"` for screen readers. The component respects `prefers-reduced-motion` to pause animations for users who prefer reduced motion.
+The component follows accessibility standards and ARIA best practices. 

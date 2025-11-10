@@ -14,6 +14,18 @@ import GradientBorderButton from "@/components/gradient-border-button";
 import { useHydration } from "@/hooks/use-hydration";
 import React from "react";
 
+
+const techBadges = [
+    <TechBadge key="nextjs" badge="nextjs" />,
+    <TechBadge key="gsap" badge="gsap" />,
+    <TechBadge key="react" badge="react" />,
+    <TechBadge key="typescript" badge="typescript" />,
+    <TechBadge key="framer_motion" badge="framer_motion" />,
+    <TechBadge key="tailwind" badge="tailwind" />,
+    <TechBadge key="css" badge="css" />,
+    <TechBadge key="radix_ui" badge="radix_ui" />,
+]
+
 gsap.registerPlugin(SplitText);
 
 const Hero: React.FC = () => {
@@ -66,15 +78,6 @@ const Hero: React.FC = () => {
     }, [isMounted]);
 
     if(!isMounted) return null;
-    const techBadges = [
-        <TechBadge key="nextjs" badge="nextjs" />,
-        <TechBadge key="gsap" badge="gsap" />,
-        <TechBadge key="react" badge="react" />,
-        <TechBadge key="typescript" badge="typescript" />,
-        <TechBadge key="framer_motion" badge="framer_motion" />,
-        <TechBadge key="tailwind" badge="tailwind" />,
-        <TechBadge key="css" badge="css" />,
-    ]
     return (
         <div className="flex flex-col items-center justify-center gap-8 z-[2] px-4 md:px-0">
             <div className="absolute inset-0 z-[99] radial-overlay touch-none pointer-events-none" style={{ background: `radial-gradient(circle at center, transparent 0%, var(--color-fd-background)) 0%` }} />
@@ -86,7 +89,7 @@ const Hero: React.FC = () => {
             <h2 className={cn("text-base md:text-xl lg:text-2xl text-fd-muted-foreground px-2 md:px-0", interFont)}>A collection of reusable components, hooks, utilities and more</h2>
             <Markee className="w-full md:w-1/2 lg:w-1/3">
                 <MarkeeFade position="left" className="from-fd-background"/>
-                <MarkeeContent duration={15} pauseOnHover={true}>
+                <MarkeeContent duration={15}>
                     {techBadges.map((badge, i) => (
                         <React.Fragment key={i}>
                             <MarkeeItem>{badge}</MarkeeItem>
