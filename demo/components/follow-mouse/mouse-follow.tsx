@@ -23,13 +23,13 @@ function MouseFollowContent({
     y: 0,
   });
 
-  const handleMouseEnter = () => {
+  const handleMouseEnter = React.useCallback(() => {
     setMouseState((prev) => ({ ...prev, isVisible: true }));
-  };
+  }, []);
 
-  const handleMouseLeave = () => {
+  const handleMouseLeave = React.useCallback(() => {
     setMouseState((prev) => ({ ...prev, isVisible: false }));
-  };
+  }, []);
 
   const handleMouseMove = React.useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
@@ -82,6 +82,7 @@ function MouseFollowItem({
   return (
     <div
         data-slot="mouse-follow-item"
+        aria-hidden="true"
         className={cn(
           "pointer-events-none fixed",
           isVisible

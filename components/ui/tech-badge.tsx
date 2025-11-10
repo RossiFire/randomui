@@ -1,7 +1,7 @@
 // Map badge types to their actual filenames and extensions
 import Image from "next/image";
 
-export type Badge = "gsap" | "css" | "framer_motion" | "tailwind" | "typescript" | "nextjs" | "react";
+export type Badge = "gsap" | "css" | "framer_motion" | "tailwind" | "typescript" | "nextjs" | "react" | "radix_ui";
 
 const badgeConfig: Record<Badge, { filename: string; extension: string; label: string }> = {
     gsap: { filename: "gsap_logo", extension: "png", label: "GSAP" },
@@ -11,6 +11,7 @@ const badgeConfig: Record<Badge, { filename: string; extension: string; label: s
     typescript: { filename: "typescript_logo", extension: "png", label: "TypeScript" },
     nextjs: { filename: "nextjs_logo", extension: "png", label: "NextJS" },
     react: { filename: "react_logo", extension: "png", label: "React" },
+    radix_ui: { filename: "radix_ui_logo", extension: "svg", label: "Radix UI" },
 };
 
 const TechBadge: React.FC<{ badge: Badge }> = ({ badge }) => {

@@ -3,7 +3,7 @@ title: Mouse Follow
 description: A performant and customisable follow mouse component built with React compound components
 ---
 
-<PageBadge badges={['tailwind', 'react', 'nextjs']} />
+<PageBadge badges={['tailwind', 'react', 'radix_ui']} />
 
 ## Demo
 <FollowMouseDemo />
@@ -63,13 +63,13 @@ function MouseFollowContent({
     y: 0,
   });
 
-  const handleMouseEnter = () => {
+  const handleMouseEnter = React.useCallback(() => {
     setMouseState((prev) => ({ ...prev, isVisible: true }));
-  };
+  }, []);
 
-  const handleMouseLeave = () => {
+  const handleMouseLeave = React.useCallback(() => {
     setMouseState((prev) => ({ ...prev, isVisible: false }));
-  };
+  }, []);
 
   const handleMouseMove = React.useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
@@ -122,6 +122,7 @@ function MouseFollowItem({
   return (
     <div
         data-slot="mouse-follow-item"
+        aria-hidden="true"
         className={cn(
           "pointer-events-none fixed",
           isVisible
@@ -175,13 +176,13 @@ import { MouseFollowContent, MouseFollowItem } from "@/components/mouse-follow";
 ```
 
 ### Global
-You can also wrap your entire page in the MouseFollowContent component to make it follow the mouse cursor everywhere.
+You can also wrap your entire page in the MouseFollowContent to make it follow the mouse cursor everywhere.
 
 ```tsx title="layout.tsx"
 export default function Layout({ children }) {
   return (
     <html>
-        <MouseFollowContent>
+        <MouseFollowContent asChild>
             <body className="flex flex-col min-h-svh">
                 {children}
                 <MouseFollowItem>
