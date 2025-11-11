@@ -196,6 +196,16 @@ export default function Layout({ children }) {
 }
 ```
 
+
+## Techbook
+When working with this comoponent, I faced an interesting use case. When trying to place a 3D model in the `MouseFollowItem`, 
+I noticed that, at page load, the model was not visibile, unless the user moved the mouse cursor before the page was fully loaded.
+After some try and error, I found that the behaviour was related to the class `scale-0` applied to the `MouseFollowItem` when the mouse cursor is not over its container.
+I assume that having the scale set to 0, was somehow breaking the 3D canvas size calculation.
+As a workaround, I switched to use the opacity instead of scaling, with `opacity-0` instead of `scale-0`, and it worked.
+
+So this is a good example of how you can adapt the component to your needs!
+
 ## Props
 
 ### MouseFollowContent
