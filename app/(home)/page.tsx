@@ -2,15 +2,15 @@ import Hero from './components/Hero';
 import PixelBlast from '@/app/(home)/components/pixel-background';
 import HomeMenu from "@/app/(home)/components/home-menu";
 import { MouseFollowContent, MouseFollowItem } from '@/demo/components/follow-mouse/mouse-follow';
-import CClock from '@/demo/components/cclock/cclock';
+import HomeMouseFollowItem from './components/home-mouse-follow-item';
 
 export default function HomePage() {
 
   return (
     <HomeMenu>
       <MouseFollowContent asChild>
-        <div className='relative h-svh w-full bg-fd-background overflow-hidden flex flex-col justify-center text-center'>
-          <div className='fixed inset-0 h-full w-full z-[1] opacity-75'>
+        <div className='relative h-svh w-full bg-fd-background overflow-hidden flex flex-col justify-center text-center cursor-none'>
+          <div className='fixed inset-0 h-full w-full z-0 opacity-75'>
             <PixelBlast
               variant="circle"
               pixelSize={6}
@@ -30,8 +30,8 @@ export default function HomePage() {
             />
           </div>
           <Hero />
-          <MouseFollowItem offsetX={40} offsetY={40}> 
-            <CClock className='scale-[0.1]'/>
+          <MouseFollowItem offsetX={10} offsetY={20}>
+            <HomeMouseFollowItem />
           </MouseFollowItem>
         </div>
       </MouseFollowContent>

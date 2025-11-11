@@ -10,7 +10,6 @@ import { Star } from "lucide-react";
 import Link from "next/link";
 import { Markee, MarkeeContent, MarkeeFade, MarkeeSpacer, MarkeeItem } from "@/components/markee";
 import TechBadge from "@/components/ui/tech-badge";
-import GradientBorderButton from "@/components/gradient-border-button";
 import { useHydration } from "@/hooks/use-hydration";
 import React from "react";
 
@@ -97,11 +96,11 @@ const Hero: React.FC = () => {
             </Markee>
             <div className="mt-20 flex items-center gap-4">
                 <RippleButton 
-                    className={cn("border-none h-8.5",interFont)} 
+                    className={cn("border-none h-8.5 cursor-none",interFont)} 
                 >
-                    <Link href="/docs/getting-started">Explore Docs</Link>
+                    <Link href="/docs/getting-started" className="cursor-none">Explore Docs</Link>
                 </RippleButton>
-                <Button variant="secondary" className="flex items-center gap-2 group" asChild>
+                <Button variant="secondary" className="flex items-center gap-2 group cursor-none" asChild>
                     <Link href="https://github.com/RossiFire/randomui" target="_blank" rel="noopener noreferrer">
                         Star on GitHub 
                         <Star 
