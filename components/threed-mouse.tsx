@@ -3,8 +3,8 @@ import { useGLTF } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import { Group, Mesh } from 'three'
 
-export function MouseModel(props: any) {
-  const { nodes, materials } = useGLTF('/mouse.glb') as any
+export function MouseModel(props: React.ComponentPropsWithoutRef<'group'>) {
+  const { nodes, materials } = useGLTF('/mouse.glb')
 
   const ref = useRef<Group>(null)
 
