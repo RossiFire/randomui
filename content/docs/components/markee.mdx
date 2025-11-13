@@ -298,7 +298,7 @@ const items = ["Item 1", "Item 2", "Item 3"];
 
 You can integrate Gsap out of the box, without editing directly the component, in the following way:
 
-<Tabs items={['code', 'demo']}>
+<Tabs items={['demo', 'code']}>
   <Tab className='p-0' value="demo">
     <MarqueeDemoWithGSAP />
   </Tab>
@@ -362,7 +362,7 @@ You can integrate Gsap out of the box, without editing directly the component, i
 
 Also Framer motion integration is supported out of the box, without editing directly the component, in the following way:
 
-<Tabs items={['code', 'demo']}>
+<Tabs items={['demo', 'code']}>
   <Tab className='p-0' value="demo">
     <MarqueeDemoWithFramerMotion />
   </Tab>
@@ -400,7 +400,7 @@ Also Framer motion integration is supported out of the box, without editing dire
 
 <Alert variant="warning" className="items-start justify-start p-4">
   <div className="flex flex-col gap-2">
-  <p className="font-bold my-0!">Limitations</p>
+  <p className="font-bold my-0!">Limitations for GSAP & Framer Motion</p>
   <span>Due to the nature of the marquee animation, I recommend you to <b>not</b> scroll for the entire marquee width, but rather a smaller portion of it,
   otherwise it will results in having an empty space at the start/end of the marquee.</span>
   </div>
