@@ -1,0 +1,95 @@
+---
+title: Lift Text
+description: Pure CSS animated text with lift effect on hover
+---
+
+<PageBadge badges={['tailwind', 'css']} />
+
+<Alert variant="warning">
+  This component is using the experimental CSS function `sibling-index()`. Checout the [MDN documentation](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/sibling-index) for further information.
+</Alert>
+
+## Demo
+<LiftTextDemo />
+
+## Installation
+
+Copy and paste the following code into your project.
+
+```tsx title="lift-text.tsx"
+import * as React from "react";
+import { cn } from "@/lib/utils";
+
+function LiftText({ className, text, ...props }: Omit<React.ComponentProps<"a">, "children"> & { text: string }) {
+  return (
+    <div className="overflow-hidden">
+      <a
+        className={cn(
+          "text-white text-4xl uppercase no-underline font-medium leading-none cursor-pointer",
+          "group",
+          className
+        )}
+        style={{
+          textShadow: "0 1.95ex 0",
+        }}
+        {...props}
+      >
+        {text.split("").map((char, index) => {
+          if (char === " ") {
+            return <span key={index}> </span>;
+          }
+          return (
+            <span
+              key={index}
+              className="relative inline-block group-hover:animate-[lift-text-up_0.3s_forwards]"
+              style={{
+                animationDelay: 'calc(sibling-index() * 0.02s)'
+              }}
+            >
+              {char}
+            </span>
+          );
+        })}
+      </a>
+    </div>
+  );
+}
+
+export { LiftText };
+```
+
+```css title="global.css"
+@theme {
+    --animate-lift-text-up: lift-text-up;
+
+    @keyframes lift-text-up {
+        100% {
+          transform: translateY(-100%);
+        }
+      }
+}
+```
+
+## Usage
+
+```tsx
+import { LiftText } from "@/components/lift-text";
+```
+
+```tsx
+<LiftText text="Work with us" />
+```
+
+## Techbook
+The `text-shadow` property is using `ex` as the unit, which is a relative unit to the height of the current font. 
+Using this unit ensures that the shadow positioning is consistent, regardless of the font size. 
+So when implementing this component, checkout that `text-shadow` value to be adjusted accordingly to your font.
+
+
+## Props
+
+It inherits all the props of the native `a` element, except for the `children` prop. Additionally, it accepts the following props:
+
+| Prop | Type | Default Value | Description |
+|------|------|---------|-------------|
+| text | `string` | - | The text to be displayed |

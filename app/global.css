@@ -8,6 +8,7 @@
 
 @theme {
     --animate-markee-scroll: markee-scroll;
+    --animate-lift-text-up: lift-text-up;
 
     @keyframes markee-scroll {
         from {
@@ -15,6 +16,12 @@
         }
         to {
           transform: translateX(-100%);
+        }
+      }
+
+      @keyframes lift-text-up {
+        100% {
+          transform: translateY(-100%);
         }
       }
 }

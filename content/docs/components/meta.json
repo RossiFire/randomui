@@ -11,6 +11,7 @@
         "floating-menu",
         "ripple-button",
         "cclock",
-        "mouse-follow"
+        "mouse-follow",
+        "lift-text"
     ]
 }
